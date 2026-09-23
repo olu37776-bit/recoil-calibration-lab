@@ -30,10 +30,10 @@ def main():
         '不是全自动游戏状态识别器，不保证WARDOGS允许或接受输入；不绕过任何拦截。\n'
         '此程序未签名。不要关闭安全软件或以管理员运行来绕过拦截。\n'
         '数据只保存在 %LOCALAPPDATA%\\RecoilCalibrationLab 。\n',encoding='utf-8-sig')
-    manifest={'version':'0.6.0-rc1','commit':os.environ.get('GITHUB_SHA','local'),
+    manifest={'version':'0.7.0-rc1','commit':os.environ.get('GITHUB_SHA','local'),
               'platform':platform.platform(),'self_test':report,'game_tested':False,'hardware_tested':False}
     (folder/'build-manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
-    name='RecoilLab-0.6.0-rc1-Windows-x64'
+    name='RecoilLab-0.7.0-rc1-Windows-x64'
     archive=Path(shutil.make_archive(str(ROOT/'dist'/name),'zip',folder.parent,folder.name))
     sha=hashlib.sha256(archive.read_bytes()).hexdigest()
     (archive.parent/(name+'.sha256')).write_text(f'{sha}  {archive.name}\n',encoding='ascii')

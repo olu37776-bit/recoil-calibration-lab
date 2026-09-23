@@ -1,15 +1,23 @@
 {
   "status": "PASS",
-  "scope": "DOM with in-process API bridge; NOT network E2E",
+  "mode": "DOM with in-process API bridge; NOT browser-network E2E",
   "checks": [
-    "catalog choices",
-    "full demo",
-    "displayed report",
-    "data table",
-    "manual weight",
-    "teaching crop",
-    "screenshot match and selection"
+    "catalog",
+    "full_demo",
+    "report",
+    "export",
+    "reload_project_persistence",
+    "manual_weight",
+    "teach_region_save",
+    "known_image_select",
+    "recognition_bank_persistence",
+    "daily_default_off",
+    "restore_last_project",
+    "copy_only_changed_condition",
+    "confirmed_settings_reuse"
   ],
   "game_tested": false,
-  "mouse_output_tested": false
+  "input_tested": false,
+  "local_http_navigation": "ERR_BLOCKED_BY_ADMINISTRATOR; not a product failure conclusion",
+  "real_browser_http": "must pass remote workflow for this commit"
 }

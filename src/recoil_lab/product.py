@@ -32,10 +32,13 @@ class Product:
             if self.native.worker is not None and self.native.worker.is_alive():
                 raise CalibrationError('桌面任务运行中；请先停止，再切换项目或修改校准')
             if action=='environment':
-                return {'version':'0.6.0-rc1','platform':platform.system(),
+                return {'version':'0.7.0-rc1','platform':platform.system(),
                     'native_available':platform.system()=='Windows','data_directory':str(self.store.root),
                     'mode':'supervised_calibration','game_verified':False,
                     'notice':'默认关闭输出。先校准、教识别并验证；负重手动选择。F7使能，F8/Esc急停。不是预训练的全游戏识别器。'}
+            if action=='preferences':
+                from .usability import preferences
+                return preferences(self.store.root, request.get('patch'))
             if action=='teach_list': return {'banks':self.teaching.list()}
             if action=='teach_create': return self.teaching.create(request)
             if action=='teach_add': return self.teaching.add(request.get('bank_id'),request)

@@ -68,6 +68,9 @@ jobs:
       - name: test_video
         timeout-minutes: 2
         run: python -m pytest -vv -s tests/test_video.py -o faulthandler_timeout=45 --junitxml=runs/test_video.xml
+      - name: test_usability
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_usability.py -o faulthandler_timeout=45 --junitxml=runs/test_usability.xml
       - name: test_workspace
         timeout-minutes: 2
         run: python -m pytest -vv -s tests/test_workspace.py -o faulthandler_timeout=45 --junitxml=runs/test_workspace.xml
@@ -130,5 +133,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tag="v0.6.0-rc1-${GITHUB_SHA:0:7}"
+          tag="v0.7.0-rc1-${GITHUB_SHA:0:7}"
           gh release create "$tag" package/dist/RecoilLab-*.zip package/dist/RecoilLab-*.sha256 --target "$GITHUB_SHA" --prerelease --title "Windows product candidate $tag" --notes "Portable Windows x64 build. Unzip the whole folder and launch RecoilLab.exe. All verification stages and packaged HTTP/synthetic-pipeline self-test passed. Real game, hardware response and anti-cheat acceptance are NOT verified. Default off; supervised operation only."

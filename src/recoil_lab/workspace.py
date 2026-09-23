@@ -108,7 +108,8 @@ class Workspace:
             t = load_trial(f)
             result['trials'].append({'id': f.stem, 'run_id': t.run_id, 'phase': t.phase,
                 'source': t.source, 'samples': len(t.t_s), 'duration_s': float(t.t_s[-1]),
-                'session_id': t.session_id, 'confidence': float(t.confidence.min())})
+                'session_id': t.session_id, 'candidate_id': t.provenance.get('candidate_id'),
+                'confidence': float(t.confidence.min())})
         result['response'] = read_json(p/'response.json') if (p/'response.json').exists() else None
         result['profiles'] = []
         for f in sorted((p/'profiles').glob('*.json')):
@@ -116,12 +117,15 @@ class Workspace:
             report = p/'reports'/(v.profile_id+'.json')
             result['profiles'].append({'id': v.profile_id, 'source': v.source,
                 'duration_s': float(v.t_s[-1]), 'parent_id': v.parent_id,
+                'training_run_ids': v.training_run_ids,
                 'report': read_json(report) if report.exists() else None})
         result['curve'] = None
         if result['active_profile']:
             active = self.profile(project_id)
             result['curve'] = {'t_s':active.t_s.tolist(),'uy_counts':active.uy_counts.tolist()}
         result['game_verified'] = False
+        from .usability import progress
+        result['workflow'] = progress(result)
         return result
 
     def profile(self, project_id: str, profile_id: str | None = None):
