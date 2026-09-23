@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recoil Lab · 状态实验室</title><link rel="stylesheet" href="/style.css"></head>
+<body><header><div class="brand">R / LAB <span>状态实验室</span></div><a href="/">← 返回选枪与配装</a><span class="tag">离线验证 · 只记录，不操作鼠标</span></header>
+<main><section class="intro"><div><p class="eyebrow">03 / STATE LAB</p><h1>先判断该不该运行，<br>再选择正确的曲线。</h1><p>开镜不等于开火，按下换弹不等于换弹完成。未知、过期、低质量状态一律停止。</p></div><div class="counter">观察 → 决策 → 记录<br>尚无游戏实时识别</div></section>
+<div id="lab-message" role="status" aria-live="polite"></div>
+<section class="panel"><div class="row"><h2>状态控制回放</h2><span class="pill">合成夹具 / 非实测枪械</span></div><p>第 0.4 秒触发所选状态；第 0.8 秒恢复，但仍按住左键；第 1 秒松开后重新按下。检查恢复状态时有没有误续发。</p>
+<div class="form-grid"><label>测试场景<select id="scenario"></select></label><label>输出后端<input value="RecordingSink · 仅记录事件" readonly></label></div>
+<button id="run-state" class="primary">运行此场景</button><button id="export-state" disabled>导出决策记录</button><p id="state-summary" class="warning">没有向游戏发送输入。</p><div class="canvas-wrap"><canvas id="state-chart" width="1000" height="170" aria-label="状态控制时间线"></canvas></div><pre id="state-output">等待运行。这里不会使用选枪界面的枪名冒充实测曲线。</pre></section>
+<section class="panel capture"><div class="row"><h2>截图状态识别试验</h2><span class="pill">固定 HUD 小区域 / 参考图匹配</span></div><p>提供至少两种不同状态的参考截图，再选一张独立的待测截图。程序比较同一 HUD 区域；它没有预装《战狗》的识别模型。</p>
+<div class="capture-grid"><div><div class="form-grid"><label>识别字段<select id="hud-field"><option value="pose">站 / 蹲 / 卧</option><option value="action">动作状态</option><option value="ads">开镜 / 腰射</option><option value="ammo">空仓 / 非空仓</option></select></label><label>游戏版本 / HUD布局标识<input id="hud-layout" placeholder="必填，如：构建号-中文-HUD100%"></label></div>
+<div id="references"></div><button id="add-ref">添加参考状态</button><p class="muted">只在本机内存处理，不保存原图。每张不超过 6 MiB；参考图和待测图必须尺寸相同。</p>
+<label class="upload">待测截图<input type="file" id="hud-query" accept="image/png,image/jpeg,image/webp"></label><div class="canvas-wrap"><canvas id="hud-preview" width="800" height="360"></canvas></div></div>
+<div><h3>只框住稳定的 HUD 图标</h3><p class="muted">不是整个游戏画面。相同位置、分辨率、语言和界面缩放；不自动缩放或猜测图标位置。</p><div class="form-grid"><label>X<input id="hud-x" type="number" value="0" min="0"></label><label>Y<input id="hud-y" type="number" value="0" min="0"></label><label>宽<input id="hud-w" type="number" value="80" min="8" max="512"></label><label>高<input id="hud-h" type="number" value="40" min="8" max="512"></label><label>最低相似度<input id="hud-threshold" type="number" value="0.90" min="0.8" max="1" step="0.01"></label><label>第一 / 第二候选最小差值<input id="hud-margin" type="number" value="0.08" min="0.01" max="0.5" step="0.01"></label></div>
+<button id="compare-hud" class="primary">比较参考图</button><pre id="hud-output">等待参考图和待测图。</pre><p class="warning">结果只是候选标签，不自动接入回放。相似度不是准确率；单帧未识别到空仓，不能反推一定有子弹。</p></div></div></section>
+<section class="panel"><h2>设备适配状态</h2><p><strong>雷蛇炼狱蝰蛇标准版 / DeathAdder Essential：</strong>官方文档确认可编程按键和 Synapse 宏。具体硬件子型号、驱动版本、坐标回放与中断行为仍需实机验证。当前版本不导出雷蛇宏，也不把 G HUB 脚本当作通用格式。</p><p>截图、曲线和状态控制不依赖鼠标品牌。驱动最后适配；更换输入后端后重新标定输入响应。</p></section>
+<footer><p>不读取进程、不捕获全局输入、不生成自动点击或隐蔽随机输入。站蹲曲线需要分开测量；中途改变配装或姿态先停止，松开后才选择已存在的匹配曲线。</p></footer></main><script src="/state.js" defer></script></body></html>

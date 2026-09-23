@@ -8,6 +8,7 @@ permissions:
   contents: read
 jobs:
   core-and-video:
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:

@@ -1,15 +1,15 @@
 {
   "status": "PASS",
-  "browser": "system Chromium via Playwright",
-  "scope": "DOM-only browser harness with in-process API bridge; HTTP tested separately; real browser navigation blocked by environment; localStorage persistence NOT tested; no game or driver",
+  "version": "0.3.0",
+  "scope": "DOM-only Chromium with in-process API bridge. Browser HTTP navigation blocked; HTTP independently unit-tested. No game/driver/hardware.",
   "checks": [
-    "default Galil loaded",
-    "default 1.5x selected",
-    "PKM only its bipod + none",
-    "server-validated JSON export",
-    "image upload, native annotation and static analysis",
-    "settings change invalidates result",
-    "mobile no horizontal overflow"
+    "state lab bootstrap via in-process bridge; no real browser HTTP",
+    "empty stops and holding after recovery waits for release",
+    "pose change stops instead of silently reusing old curve",
+    "uploaded two synthetic references and independent query; correct candidate, no execution permission",
+    "changing HUD inputs invalidates displayed result",
+    "mobile horizontal overflow=False"
   ],
-  "page_errors": []
+  "page_errors": [],
+  "browser_network_e2e": false
 }

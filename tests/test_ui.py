@@ -48,9 +48,21 @@ def test_local_server_tokens_and_assets():
             req=urllib.request.Request(root+'/api/bootstrap',headers={'Host':'evil.invalid'})
             with pytest.raises(urllib.error.HTTPError) as e:urllib.request.urlopen(req)
             assert e.value.code==403
-            for path in ['/style.css','/app.js']:
+            for path in ['/style.css','/app.js','/state.html','/state.js']:
                 with urllib.request.urlopen(root+path) as r:assert len(r.read())>100
             with pytest.raises(urllib.error.HTTPError) as e:urllib.request.urlopen(root+'/../../etc/passwd')
             assert e.value.code==404
         finally:
             server.shutdown();thread.join(timeout=3)
+
+
+def test_state_demo_route():
+    r=process('/api/state-demo',{'scenario':'empty'})
+    assert r['kind']=='synthetic_state_demo'
+    assert any(t['reason']=='EMPTY' for t in r['trace'])
+
+
+def test_hud_route():
+    from test_hud import payload
+    r=process('/api/hud-compare',payload())
+    assert r['label']=='standing' and not r['auto_execution_eligible']

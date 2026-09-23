@@ -72,3 +72,7 @@ class MotionSink(Protocol):
 ## 7. V0.2 输入适配
 
 公开配装目录见 CATALOG.md，截图契约见 SCREENSHOTS.md。两者必须生成同一 Context，不能绕开本文件的门禁。浏览器保存导入的配装一律重算指纹并标记未测量。原始媒体不纳入仓库。
+
+## 8. V0.3 状态反馈
+
+新增StatePlayback外层门禁，原Playback协议保持兼容；完整状态快照、陈旧门禁、恢复需释放、精确Context选择及HUD候选不能自动执行的规则见STATE_FEEDBACK.md。
