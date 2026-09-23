@@ -47,6 +47,34 @@ def main():
                 page.check('#settingsConfirmed')
                 page.click('#create')
                 expect(page.locator('#summary')).to_contain_text('浏览器教学测试')
+                page.click('[data-tab=capture]')
+                expect(page.locator('#batchTrain')).to_contain_text('3 轮')
+                expect(page.locator('#captureSound')).not_to_be_checked()
+                page.click('#checkPreparation')
+                expect(page.locator('#preflightResult')).to_contain_text('本次采集授权')
+                expect(page.locator('#preflightResult')).to_contain_text('目标窗口')
+                expect(page.locator('#consent')).not_to_be_checked()
+                # Simulated failure display only, no native session started by this event.
+                page.evaluate("""() => window.dispatchEvent(new CustomEvent('lab-status',{detail:{
+                    state:'ERROR',mode:'train_batch',completed:1,total:3,message:'本轮提前松开',
+                    recovery:{title:'本轮提前松开',hint:'成功的一轮保留；只补缺失记录。'}
+                }}))""")
+                expect(page.locator('#recoveryPanel')).to_be_visible()
+                expect(page.locator('#savedRounds')).to_contain_text('1/3')
+                page.click('#retryPreparation')
+                expect(page.locator('#message')).to_contain_text('不会自动续录')
+                page.evaluate('() => window.scrollTo(0,0)')
+                page.screenshot(path=str(out/'capture-recovery-interface.png'),full_page=True)
+                page.locator('details').filter(has=page.locator('#exportDiagnostic')).locator('summary').click()
+                with page.expect_download() as diagnostic_download:
+                    page.click('#exportDiagnostic')
+                report_text=Path(diagnostic_download.value.path()).read_text(encoding='utf-8')
+                assert '浏览器教学测试' not in report_text and 'hwnd' not in report_text
+                assert 'recoil-diagnostic-v1' in report_text
+                # Stale preview invalidation is an actual UI state test with synthetic image data.
+                page.evaluate("""() => {roi=[1,1,40,40];image={};previewScope={project_id:'old',hwnd:1};
+                    document.querySelector('#windows').dispatchEvent(new Event('change'));}""")
+                expect(page.locator('#roi')).to_have_text('尚未选择区域')
                 page.click('[data-tab=teach]')
                 import numpy as np
                 from PIL import Image
@@ -89,7 +117,7 @@ def main():
                 page.screenshot(path=str(out/'product-interface.png'),full_page=True)
                 browser.close()
                 if errors:raise AssertionError(errors)
-            result={'status':'PASS','mode':'actual_browser_loopback_HTTP', 'checks':['catalog','full_demo','report','export','reload_project_persistence','manual_weight','teach_region_save','known_image_select','recognition_bank_persistence','daily_default_off','restore_last_project','copy_only_changed_condition','confirmed_settings_reuse'], 'game_tested':False,'input_tested':False}
+            result={'status':'PASS','mode':'actual_browser_loopback_HTTP', 'checks':['catalog','full_demo','report','export','reload_project_persistence','manual_weight','teach_region_save','known_image_select','recognition_bank_persistence','daily_default_off','restore_last_project','copy_only_changed_condition','confirmed_settings_reuse','preflight_read_only','synthetic_failure_recovery','diagnostic_download_privacy','window_change_clears_preview'], 'game_tested':False,'input_tested':False}
         except Exception as exc:
             result={'status':'FAIL','mode':'actual_browser_loopback_HTTP','error':str(exc),'game_tested':False,'input_tested':False}
             raise

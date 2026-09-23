@@ -133,6 +133,11 @@ class WindowsDesktop:
         if self.user.SendInput(1,C.byref(event),C.sizeof(INPUT)) != 1:
             raise CalibrationError('Windows拒绝了输入；不会提权或尝试绕过')
 
+    def cue(self) -> None:
+        """Optional system sound only; does not generate mouse or keyboard input."""
+        import winsound
+        winsound.PlaySound('SystemAsterisk', winsound.SND_ALIAS | winsound.SND_ASYNC)
+
     def windows(self) -> list[dict]:
         values = []
         callback_type = C.WINFUNCTYPE(W.BOOL, W.HWND, W.LPARAM)

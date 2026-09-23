@@ -9,6 +9,26 @@ from recoil_lab.calibration import fit_response
 from test_catalog import config
 
 
+@pytest.fixture(autouse=True)
+def deterministic_capture_clock(monkeypatch):
+    """The virtual scene must not change when coverage/CPU load changes.
+
+    This models capture time, not real hardware latency. Production timing gates
+    stay unchanged and have separate timeout tests.
+    """
+    import sys
+    from types import SimpleNamespace
+    now = [10.]
+    def tick():
+        now[0] += .001
+        return now[0]
+    def sleep(seconds):
+        now[0] += seconds
+    clock = SimpleNamespace(perf_counter=tick, monotonic=lambda:now[0], sleep=sleep)
+    monkeypatch.setattr('recoil_lab.native_session.time', clock)
+    monkeypatch.setattr(sys.modules[__name__], 'time', clock)
+
+
 class VirtualDesktop:
     def __init__(self,phase):
         self.phase=phase;self.u=0;self.start=None

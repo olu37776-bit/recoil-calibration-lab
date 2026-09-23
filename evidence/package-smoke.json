@@ -1,19 +1,13 @@
 {
   "status": "PASS",
-  "version": "0.7.0rc1",
-  "artifact": "wheel",
-  "wheel_includes_guided_assets": true,
-  "installed_package_self_test": {
-    "status": "PASS",
-    "version": "0.7.0-rc1",
-    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
-    "frozen": false,
-    "input_abi_bytes": 40,
-    "http_and_synthetic_pipeline": true,
-    "mouse_output_tested": false,
-    "game_tested": false
-  },
-  "source": "fresh local installed-wheel test",
-  "windows_executable_tested": false,
-  "game_tested": false
+  "version": "0.8.0-rc1",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "frozen": false,
+  "input_abi_bytes": 40,
+  "http_and_synthetic_pipeline": true,
+  "mouse_output_tested": false,
+  "game_tested": false,
+  "artifact": "recoil_calibration_lab-0.8.0rc1-py3-none-any.whl",
+  "wheel_sha256": "532e816935858de15e3e8b9da1b0cc03d18cc2be29413cb72d6253dd0061bfcc",
+  "scope": "installed Python wheel self-test, not Windows exe or physical input"
 }

@@ -104,7 +104,7 @@ def test_threaded_http_idle_connection_and_origin(tmp_path):
         try:
             with opener.open(root+'/workbench.html',timeout=3) as r:assert '工作台'.encode() in r.read()
             req=urllib.request.Request(root+'/api/product',data=json.dumps({'action':'environment'}).encode(),headers={'Content-Type':'application/json','X-Lab-Token':s.token})
-            with opener.open(req,timeout=3) as r:assert json.load(r)['version']=='0.7.0-rc1'
+            with opener.open(req,timeout=3) as r:assert json.load(r)['version']=='0.8.0-rc1'
             req.add_header('Origin','https://foreign.invalid')
             with pytest.raises(urllib.error.HTTPError) as e:opener.open(req,timeout=3)
             assert e.value.code==403

@@ -18,7 +18,7 @@ window.Guidance=(()=>{
   const map={
    record_response:{tab:'capture',action:'recordResponse',hint:'回到目标窗口，按住 F7＋右键；这一步不要开火，也不要移动鼠标。',button:`开始第 ${Math.min((c.response||0)+1,2)} / 2 次标定`},
    response:{tab:'calibrate',action:'response',hint:'不需要再切回游戏。程序计算本机鼠标输入与画面移动的关系。',button:'计算并保存标定'},
-   record_train:{tab:'capture',action:'recordTrain',hint:'朝同一面有纹理的墙，先松开左键，再按住 F7＋右键＋左键试射；不要手动压枪。',button:`开始第 ${Math.min((c.train||0)+1,3)} / 3 次试射`},
+   record_train:{tab:'capture',action:'batchTrain',hint:'一次准备补齐未补偿试射。每轮松开 F7 和左右键，换弹并回到起点，再按下试射；不自动点击，不输出鼠标移动。',button:`一次准备，补齐 ${Math.max(1,3-(c.train||0))} 轮试射`},
    fit:{tab:'calibrate',action:'fit',hint:'根据你刚才的试射生成补偿。无需手填鼠标位移或时间参数。',button:'生成这套配装的补偿'},
    record_validation:{tab:'capture',action:'recordValidation',hint:'现在检查刚生成的版本。重新采集，按住 F7＋右键＋左键；旧版本的检查不会算进来。',button:`开始第 ${Math.min((c.validation_current||0)+1,3)} / 3 次效果检查`},
    validate:{tab:'calibrate',action:'validate',hint:'检查完整过程，而不只看最后落点。通过后才可用于受控运行。',button:'计算本版检查结果'},
@@ -51,12 +51,12 @@ window.Guidance=(()=>{
   $('quickRollback').disabled=!current?.workflow?.recommended_rollback_id||busy>0||!!poll;
   for(const id of ['duplicateConfig','dailyExport','dailyTeach','reviewEffect'])$(id).disabled=!current||busy>0||!!poll;
   if(lastStatus){const name=bank?.samples.find(s=>s.project_id===lastStatus.selected_project)?.name;$('dailyLive').textContent=lastStatus.message+(name?'\n当前识别：'+name:'')+'\n'+(lastStatus.actual_output_enabled?'本次已允许受监督输出':'未启用自动输出');}
-  if(mode==='tune'&&!draft&&busy===0&&!poll&&$('autoCalculate').checked&&['response','fit','validate'].includes(current?.workflow?.step)){
+  if(mode==='tune'&&!draft&&busy===0&&!poll&&lastStatus?.state!=='ERROR'&&$('autoCalculate').checked&&['response','fit','validate'].includes(current?.workflow?.step)){
    const key=[current.id,current.workflow.step,current.active_profile,...current.trials.map(t=>t.id)].join(':');
    if(!calculated.has(key)){calculated.add(key);const action=current.workflow.step;queueMicrotask(()=>{if(busy===0&&!poll&&mode==='tune')$(action).click();else calculated.delete(key);});}
   }
  }
- function windowsChanged(){const old=$('dailyWindow').value;$('dailyWindow').replaceChildren();for(const x of $('windows').options)option($('dailyWindow'),x.value,x.textContent);if([...$('dailyWindow').options].some(x=>x.value===old))$('dailyWindow').value=old;$('windows').value=$('dailyWindow').value;refresh();}
+ function windowsChanged(){const selected=$('windows').value;$('dailyWindow').replaceChildren();for(const x of $('windows').options)option($('dailyWindow'),x.value,x.textContent);$('dailyWindow').value=selected;refresh();}
  function banksChanged(event){bank=event.detail.bank;banks=event.detail.banks||banks;if(env&&bank&&prefs.last_bank_id!==bank.id)remember({last_bank_id:bank.id}).catch(()=>{});const sel=$('dailyBank');sel.replaceChildren();option(sel,'','选择识别库');for(const b of banks)option(sel,b.id,b.name);sel.value=bank?.id||'';
   const weight=$('dailyWeight').value;const weights=new Set(['未记录','轻装','中装','重装',...(bank?.weights||[])]);$('dailyWeight').replaceChildren();for(const w of weights)option($('dailyWeight'),w,w);$('dailyWeight').value=weights.has(weight)?weight:'未记录';$('teachWeight').value=$('dailyWeight').value;refresh();}
  async function dailyStart(modeName){
@@ -65,7 +65,7 @@ window.Guidance=(()=>{
   await TeachingUI.live(modeName);refresh();
  }
  async function nextAction(){
-  refresh();showStep();if(next?.action){if($(next.action).disabled)throw Error('这一步当前不可用，请按页面提示准备');$(next.action).click();}
+  refresh();showStep();if(next?.action==='batchTrain'){await CaptureHelp.startBatch();return;}if(next?.action){if($(next.action).disabled)throw Error('这一步当前不可用，请按页面提示准备');$(next.action).click();}
   if(next?.tab==='teach'){mode='teach';$('guide').hidden=true;}
  }
  async function init(e){env=e;prefs=await api('preferences');
@@ -90,7 +90,7 @@ window.Guidance=(()=>{
  bind('duplicateConfig',async()=>{$('copySetup').click();});bind('dailyExport',async()=>{$('export').click();});
  bind('reviewEffect',()=>{changeMode('tune');tab('calibrate');});
  bind('quickRollback',async()=>{const id=current?.workflow?.recommended_rollback_id;if(!id)throw Error('请在高级版本列表中选择此前通过检查的版本');render(await api('select',{profile_id:id}));say('已恢复通过检查的版本；没有启用输出');});
- $('dailyWindow').addEventListener('change',()=>{$('windows').value=$('dailyWindow').value;refresh();});
+ $('dailyWindow').addEventListener('change',()=>{$('windows').value=$('dailyWindow').value;invalidatePreview();refresh();});
  $('dailyBank').addEventListener('change',async()=>{try{await TeachingUI.refresh($('dailyBank').value||'');await remember({last_bank_id:$('dailyBank').value});}catch(e){say(e.message,true);}refresh();});
  $('dailyWeight').addEventListener('change',async()=>{$('teachWeight').value=$('dailyWeight').value;try{await remember({weight_label:$('dailyWeight').value});}catch(e){say(e.message,true);}refresh();});
  for(const id of [...Object.values(settingIds),'width','height'])$(id).addEventListener('input',()=>{$('settingsConfirmed').checked=false;settingsLabel();});

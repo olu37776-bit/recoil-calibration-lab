@@ -1,6 +1,8 @@
 'use strict';
 const $=id=>document.getElementById(id);
 let token='', catalog=null, current=null, roi=null, image=null, dragging=null, poll=null;
+let previewScope=null;
+function invalidatePreview(){roi=null;image=null;previewScope=null;drawPreview();}
 function newCaptureSession(){return 'session-'+Array.from(crypto.getRandomValues(new Uint32Array(3)),n=>n.toString(16).padStart(8,'0')).join('');}
 function say(text,error=false){$('message').textContent=text;$('message').className=error?'error':'';}
 async function api(action,extra={}){
@@ -21,13 +23,13 @@ function tab(id){document.querySelectorAll('.pane').forEach(e=>e.hidden=e.id!==i
 async function projects(){const data=await api('projects');$('projects').replaceChildren();for(const p of data.projects)option($('projects'),p.id,p.name);if(current)$('projects').value=current.id;}
 function requireProject(){if(!current)throw Error('请先创建或选择一个项目');}
 function drawCurve(data){const c=$('chart'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);if(!data)return;const {t_s,uy_counts}=data;const lo=Math.min(0,...uy_counts),hi=Math.max(1,...uy_counts);ctx.strokeStyle='#65d5bc';ctx.lineWidth=2;ctx.beginPath();for(let i=0;i<t_s.length;i++){const x=35+t_s[i]/t_s[t_s.length-1]*(c.width-60),y=200-(uy_counts[i]-lo)/(hi-lo)*160;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();ctx.fillStyle='#b8cadd';ctx.font='14px system-ui';ctx.fillText('累计垂直输入（不是每发伤害，也不是游戏已验证）',30,24);ctx.fillText(`0 → ${t_s[t_s.length-1].toFixed(2)} 秒`,30,230);}
-function render(data){current=data;$('summary').replaceChildren();let p=document.createElement('p');p.textContent=`当前：${data.name}\n${data.demo?'合成演示':'真实采样项目'}\n配置：${data.context.weapon} / ${data.context.pose} / 负重：${data.context.weight_label||'未记录'}`;$('summary').append(p);
+function render(data){if(current?.id!==data.id)invalidatePreview();current=data;$('summary').replaceChildren();let p=document.createElement('p');p.textContent=`当前：${data.name}\n${data.demo?'合成演示':'真实采样项目'}\n配置：${data.context.weapon} / ${data.context.pose} / 负重：${data.context.weight_label||'未记录'}`;$('summary').append(p);
  const counts={response:0,train:0,validation:0};data.trials.forEach(t=>counts[t.phase]++);p=document.createElement('p');p.textContent=`响应 ${counts.response}/2　训练 ${counts.train}/3　验证 ${counts.validation}/3`;$('summary').append(p);
  const table=document.createElement('table');const head=table.insertRow();['记录','阶段','时长','最低质量'].forEach(text=>{const cell=head.insertCell();cell.textContent=text;});for(const t of data.trials){const row=table.insertRow();[t.run_id.slice(0,19),t.phase,t.duration_s.toFixed(2)+'s',t.confidence.toFixed(2)].forEach(text=>row.insertCell().textContent=text);}$('trials').replaceChildren(table);
  $('profiles').replaceChildren();for(const v of data.profiles)option($('profiles'),v.id,`${v.id.slice(0,10)} · ${v.duration_s.toFixed(2)}秒 · ${v.report?.evidence_kind||'未验证'}`);$('profiles').value=data.active_profile||'';
  const active=data.profiles.find(v=>v.id===data.active_profile);$('report').textContent=active?.report?`${active.report.passed?'门禁通过':'未通过'} / ${active.report.evidence_kind} / 游戏实测：未认证`:'尚无验证报告';$('details').textContent=JSON.stringify(active?.report||data.response||{message:'先采集响应与训练数据'},null,2);drawCurve(data.curve);$('projects').value=data.id;window.dispatchEvent(new Event('lab-project'));
 }
-async function openProject(id){render(await api('open',{project_id:id}));roi=null;image=null;drawPreview();}
+async function openProject(id){invalidatePreview();render(await api('open',{project_id:id}));}
 async function refreshCurrent(){if(current)render(await api('open'));}
 function download(name,data,type){const url=URL.createObjectURL(new Blob([data],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);}
 function bytes64(b64){return Uint8Array.from(atob(b64),c=>c.charCodeAt(0));}
@@ -37,19 +39,20 @@ function point(e){const r=$('previewCanvas').getBoundingClientRect();return[Math
 $('previewCanvas').addEventListener('pointerdown',e=>{if(!image)return;dragging=point(e);e.target.setPointerCapture(e.pointerId);});
 $('previewCanvas').addEventListener('pointermove',e=>{if(!dragging)return;const q=point(e);roi=[Math.min(q[0],dragging[0]),Math.min(q[1],dragging[1]),Math.abs(q[0]-dragging[0]),Math.abs(q[1]-dragging[1])];drawPreview();});
 $('previewCanvas').addEventListener('pointerup',()=>{dragging=null;if(roi&&(roi[2]<32||roi[3]<32)){roi=null;say('区域至少32×32原图像素',true);drawPreview();}});
-async function native(mode){requireProject();const consent=mode==='execute'?$('executeConsent').checked:$('consent').checked;const status=await api('native',{mode,consent,hwnd:+$('windows').value,roi,duration_s:+$('duration').value});$('nativeStatus').textContent=status.message;say(status.message);if(poll)clearInterval(poll);poll=setInterval(checkNative,750);if(window.Guidance)Guidance.refresh();}
+async function native(mode,extra={}){requireProject();if(mode!=='preview'&&mode!=='execute'&&(!previewScope||previewScope.project_id!==current.id||previewScope.hwnd!==+$('windows').value)){invalidatePreview();throw Error('窗口或配置已变化，请重新取得预览并框选墙面');}const consent=mode==='execute'?$('executeConsent').checked:$('consent').checked;const status=await api('native',{mode,consent,hwnd:+$('windows').value,roi,duration_s:+$('duration').value,...extra});$('nativeStatus').textContent=status.message;say(status.message);if(poll)clearInterval(poll);poll=setInterval(checkNative,750);if(window.Guidance)Guidance.refresh();}
 let polling=false;
-async function checkNative(){if(polling)return;polling=true;try{const s=await api('status');$('nativeStatus').textContent=`${s.message} ${Math.round((s.progress||0)*100)}%`;if(window.TeachingUI)TeachingUI.status(s);window.dispatchEvent(new CustomEvent('lab-status',{detail:s}));if(s.state!=='RUNNING'){clearInterval(poll);poll=null;say(s.message,s.state==='ERROR');if(s.preview){const next=new Image();next.onload=()=>{image=next;const c=$('previewCanvas');c.width=Math.min(900,image.width);c.height=Math.round(image.height/image.width*c.width);roi=null;drawPreview();if(window.Guidance)Guidance.refresh();};next.src='data:image/png;base64,'+s.preview.image;}await refreshCurrent();if(window.Guidance)Guidance.refresh();}}catch(e){say(e.message,true);}finally{polling=false;}}
+async function checkNative(){if(polling)return;polling=true;try{const s=await api('status');$('nativeStatus').textContent=`${s.message} ${Math.round((s.progress||0)*100)}%`;if(window.TeachingUI)TeachingUI.status(s);window.dispatchEvent(new CustomEvent('lab-status',{detail:s}));if(s.state!=='RUNNING'){clearInterval(poll);poll=null;say(s.message,s.state==='ERROR');if(s.preview){const next=new Image();next.onload=()=>{if(s.project_id!==current?.id||s.hwnd!==+$('windows').value)return;previewScope={project_id:s.project_id,hwnd:s.hwnd};image=next;const c=$('previewCanvas');c.width=Math.min(900,image.width);c.height=Math.round(image.height/image.width*c.width);roi=null;drawPreview();if(window.Guidance)Guidance.refresh();};next.src='data:image/png;base64,'+s.preview.image;}await refreshCurrent();if(window.Guidance)Guidance.refresh();}}catch(e){say(e.message,true);}finally{polling=false;}}
 let actionBusy=0;
 function bind(id,fn){$(id).addEventListener('click',async()=>{const b=$(id);b.disabled=true;actionBusy++;window.dispatchEvent(new CustomEvent('lab-busy',{detail:actionBusy}));try{await fn();}catch(e){say(e.message,true);}finally{b.disabled=false;actionBusy--;window.dispatchEvent(new CustomEvent('lab-busy',{detail:actionBusy}));}});}
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.tab)));
 $('weapon').addEventListener('change',slots);for(const k of catalog?.slots||[])$(k).addEventListener('change',cost);
+$('windows').addEventListener('change',()=>invalidatePreview());
 $('projects').addEventListener('change',()=>openProject($('projects').value).catch(e=>say(e.message,true)));
 bind('refresh',async()=>{await projects();await refreshCurrent();});
 bind('create',async()=>{if(window.Guidance)await Guidance.beforeCreate();render(await api('create',{name:$('name').value,preset:preset()}));await projects();tab('capture');say('项目已保存；请核对目标窗口与分辨率');});
 bind('demo',async()=>{say('正在运行全流程合成演示…');render(await api('demo'));await projects();tab('calibrate');say('合成全流程完成；不是游戏校准结果');});
 bind('import',async()=>{requireProject();render(await api('import',{zip_base64:await file64($('trialzip').files[0])}));say('导入完成');});
-bind('listwindows',async()=>{const r=await api('windows');$('windows').replaceChildren();for(const w of r.windows)option($('windows'),w.handle,`${w.title} · ${w.resolution.join('×')}`);say('按实际窗口尺寸创建项目；采集前需切到该窗口');window.dispatchEvent(new Event('lab-windows'));});
+bind('listwindows',async()=>{const r=await api('windows');invalidatePreview();$('windows').replaceChildren();option($('windows'),'','请选择目标窗口');for(const w of r.windows)option($('windows'),w.handle,`${w.title} · ${w.resolution.join('×')}`);say('请选择窗口并核对尺寸；重新读窗口后需重新取得预览。');window.dispatchEvent(new Event('lab-windows'));});
 for(const [id,mode] of [['preview','preview'],['recordResponse','response'],['recordTrain','train'],['recordValidation','validation'],['executeButton','execute']])bind(id,()=>native(mode));
 for(const action of ['response','fit','refine','validate'])bind(action,async()=>{requireProject();say('正在计算…');const r=await api(action);if(action==='validate')say(`${r.passed?'通过':'未通过'}：${r.evidence_kind}`);else say('计算完成并保存新记录');await refreshCurrent();});
 bind('selectProfile',async()=>{requireProject();render(await api('select',{profile_id:$('profiles').value}));say('已切换版本；没有启用输出');});

@@ -24,7 +24,7 @@ def self_test(output: Path) -> None:
         opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
         root=f'http://127.0.0.1:{server.server_port}'
         try:
-            for page in ('/workbench.html','/workbench.js','/teaching-ui.js','/guided.js','/guided.css','/api/catalog'):
+            for page in ('/workbench.html','/workbench.js','/teaching-ui.js','/guided.js','/guided.css','/capture-help.js','/api/catalog'):
                 with opener.open(root+page,timeout=5) as response:
                     if response.status!=200 or not response.read(): raise RuntimeError('本机HTTP自检失败')
             result=Product(Path(td)/'demo').handle({'action':'demo'})
@@ -33,7 +33,7 @@ def self_test(output: Path) -> None:
         finally:
             server.shutdown();thread.join(5)
     output.parent.mkdir(parents=True,exist_ok=True)
-    output.write_text(json.dumps({'status':'PASS','version':'0.7.0-rc1','platform':platform.platform(),
+    output.write_text(json.dumps({'status':'PASS','version':'0.8.0-rc1','platform':platform.platform(),
         'frozen':bool(getattr(sys,'frozen',False)), 'input_abi_bytes':ctypes.sizeof(INPUT),
         'http_and_synthetic_pipeline':True,'mouse_output_tested':False,'game_tested':False},indent=2),encoding='utf-8')
 

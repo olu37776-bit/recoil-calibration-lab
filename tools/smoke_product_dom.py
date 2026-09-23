@@ -55,7 +55,7 @@ def main():
             const r=await window.labBridge(path,options.body||'{}');
             return {ok:r.ok,json:async()=>r.data};
         }""")
-        for name in ('workbench.js', 'teaching-ui.js', 'guided.js'):
+        for name in ('workbench.js', 'teaching-ui.js', 'guided.js', 'capture-help.js'):
             page.add_script_tag(content=(ROOT/'src/recoil_lab/web'/name).read_text(encoding='utf-8'))
         page.wait_for_function('window.labInitialized===true')
 

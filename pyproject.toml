@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "recoil-calibration-lab"
-version = "0.7.0rc1"
+version = "0.8.0rc1"
 description = "Local calibration workbench with supervised Windows test workflow"
 readme = "README.md"
 requires-python = ">=3.11"
