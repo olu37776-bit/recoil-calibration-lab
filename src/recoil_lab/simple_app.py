@@ -9,7 +9,9 @@ import platform
 import tempfile
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
-from .simple_core import VERSION, LABELS, Setting, Store, Runner, impact_summary
+from .simple_core import VERSION, LABELS, Setting, Store, impact_summary
+from .simple_quick import QuickRunner as Runner
+from .simple_quick_ui import QuickControls
 from .simple_desktop import Desktop
 from .simple_tuning import (EditHistory, Preferences, read_setting, write_setting,
                             setting_caption, validate_catalog_setting)
@@ -106,7 +108,7 @@ class Application:
         ttk.Button(actions,text='记住当前手感',command=self.remember_reference).pack(side='left',padx=5)
         self.restore_button=ttk.Button(actions,text='恢复记住的值',command=self.restore_reference);self.restore_button.pack(side='left')
         ttk.Label(second,textvariable=self.reference_text,foreground='#536173',wraplength=820).pack(anchor='w',pady=(2,4))
-        ttk.Label(second,text='力度越大，下拉越快。先用2秒短连射，切回本窗口再调；左右散和呼吸晃动不要靠一直加力度解决。',foreground='#536173',wraplength=820).pack(anchor='w')
+        ttk.Label(second,text='力度越大，下拉越快。先用2秒短连射；可选松手快捷调节。左右散和呼吸晃动不要靠一直加力度解决。',foreground='#536173',wraplength=820).pack(anchor='w')
         ttk.Label(outer,textvariable=self.condition_text,foreground='#134a76',wraplength=820).pack(anchor='w',pady=(0,10))
         third=ttk.LabelFrame(outer,text='3  选择窗口后试用（不实时采图）',padding=10);third.pack(fill='x',pady=(0,10))
         row=ttk.Frame(third);row.pack(fill='x')
@@ -127,6 +129,7 @@ class Application:
         root.protocol('WM_DELETE_WINDOW',self.close);root.bind('<Escape>',lambda e:self.stop())
         self.history=EditHistory(self.setting())
         self.silent=False;self.refresh_saved();self.refresh_edit_state()
+        self.quick=QuickControls(self)
         self.timer=root.after(80,self.pulse)
         last_key=self.preferences.read()
         saved_settings=dict(self.store.items())
@@ -170,7 +173,8 @@ class Application:
             self.has_edits=True;self.dirty_text.set('有未保存修改 · 请先完成当前字段')
     def set_rate(self,value):
         self.rate.set(value);self.amount.set(f'{value:g}');self.numeric.set(f'{value:g}');self.edited()
-    def slider(self,value):self.set_rate(round(float(value)))
+    def slider(self,value):
+        if not self.silent:self.set_rate(round(float(value)))
     def adjust(self,delta):self.set_rate(round(max(0,min(400,self.rate.get()+delta)),4))
     def setting(self):
         for key,combo in self.combos.items():
@@ -194,6 +198,7 @@ class Application:
     def step_changed(self,event=None):
         self.less_button.configure(text='压过头了  −'+self.step.get())
         self.more_button.configure(text='还往上飘  ＋'+self.step.get())
+        if hasattr(self,'quick'):self.quick.options_changed()
     def pending_numeric(self):
         try:return float(self.numeric.get().strip())!=self.rate.get()
         except (ValueError,tk.TclError):return True
@@ -228,6 +233,7 @@ class Application:
         try:self.preferences.remember(s)
         except OSError:self.status.set('配装已载入/保存，但记住上次选择失败；下次请手动选择。')
     def save(self):
+        if hasattr(self,'quick'):self.quick.sync()
         if self.pending_numeric() and not self.set_numeric():return False
         try:
             self.runner.stop('已停止；配置保存中');s=self.setting();self.store.save(s);self.refresh_saved()
@@ -308,10 +314,16 @@ class Application:
         if not self.consent.get():self.stop()
     def start(self):
         if self.pending_numeric() and not self.set_numeric():return
-        try:self.runner.start(self.setting(),self.target,self.consent.get());self.status.set(self.runner.message)
+        try:
+            self.quick.prepare()
+            self.runner.start(self.setting(),self.target,self.consent.get());self.status.set(self.runner.message)
         except (ValueError,OSError) as e:self.error(e)
-    def stop(self):self.runner.stop();self.status.set(self.runner.message)
+    def stop(self):
+        self.runner.stop()
+        if hasattr(self,'quick'):self.quick.sync()
+        self.status.set(self.runner.message)
     def pulse(self):
+        self.quick.sync()
         message=self.runner.pulse()
         if self.runner.active or getattr(self,'was_active',False):self.status.set(message)
         self.was_active=self.runner.active;self.timer=self.root.after(80,self.pulse)
@@ -433,7 +445,11 @@ def self_test(out):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--self-test');args=p.parse_args()
-    if args.self_test:self_test(args.self_test);return
+    if args.self_test:
+        self_test(args.self_test)
+        from .simple_quick_ui import self_test as quick_test
+        quick_test(args.self_test)
+        return
     try:
         if platform.system()=='Windows':Desktop()
         root=tk.Tk();Application(root);root.mainloop()

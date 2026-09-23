@@ -1,0 +1,59 @@
+{
+  "base_commit": "0d79b4f336c3935cd104101aadc0ad83c0d7f01d",
+  "version": "1.2.0-rc1",
+  "regression": {
+    "tests": 539,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "native_self_test": {
+    "status": "PASS",
+    "version": "1.2.0-rc1",
+    "physical_input_tested": false,
+    "game_tested": false,
+    "checks": [
+      "native_tk_window",
+      "manual_adjust",
+      "save",
+      "previous_value",
+      "weapon_compatibility",
+      "manual_weight",
+      "2560x1440_feedback",
+      "restart_without_permission",
+      "fine_step_1",
+      "undo_edit",
+      "manual_reference_restore",
+      "numeric_validation",
+      "portable_export_import",
+      "cancel_unsaved_discard",
+      "bad_import_preserves_draft",
+      "restore_last_saved_without_target",
+      "sticky_start_at_820x580",
+      "invalid_pending_number_blocks_save",
+      "quick_default_off",
+      "quick_step_prepared_without_input",
+      "quick_ack_updates_native_fields_and_draft",
+      "quick_edit_undo",
+      "quick_conflict_keeps_newer_draft",
+      "quick_status_window_is_opt_in",
+      "quick_status_close_stops",
+      "quick_restart_keeps_settings_not_permission"
+    ]
+  },
+  "source_sha256": {
+    "src/recoil_lab/simple_core.py": "ffa9383f24620a902e36ea913c8a2e62d78e030d48200a9ebbd04cf3f49cca33",
+    "src/recoil_lab/simple_app.py": "cc9ea20fc318e0173020a250b1eaeacbd55588b0f50466962dce9410f57e0254",
+    "src/recoil_lab/simple_quick.py": "793adfd36f5c8e8761b5897611f32b70a42ceb7f157bdaafae24f67b3142ecdf",
+    "src/recoil_lab/simple_quick_ui.py": "58b107f5ed510a8c9df16b6d01828b260006c95488264bbe22b54bc5bd616b97",
+    "tests/test_simple_quick.py": "3c4473e9fccc14e524be3e3cbab6192c17aa17bb49e627aaf73eb2a4475ca294",
+    "tools/build_simple.py": "2c819aa162f324a383750f5dbaa77cb344a6f8b0b700d172236728f9cb6718db",
+    ".github/workflows/simple.yml": "8ab7ff3baf2848278594b62f79da8535929e0296d12131b78b3b3a149084555b",
+    "docs/SIMPLE_MODE.md": "0563fda48b73ea72d83bcb5c2364f7c9610daf8f03c03614a539cd7b5450d1fa",
+    "docs/SIMPLE_12_PLAN.md": "631889e492f110b372c7b7e4cb854f89731c9c25601cc34cd1383164cec9d7f7"
+  },
+  "game_tested": false,
+  "physical_input_tested": false,
+  "independent_review": false,
+  "remote_verification": "PENDING_NEW_COMMIT"
+}
