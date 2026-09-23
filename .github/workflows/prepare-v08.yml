@@ -1,0 +1,84 @@
+name: Prepare verified V08 source objects
+on:
+  push:
+    branches: [build/v08-capture-637f79a]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Validate source transfer and create blobs without updating refs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64, gzip, hashlib, io, json, os, pathlib, subprocess, urllib.request
+          base = '3d5625a7b77a47f17dc4302e72b594b546e9a3c8'
+          expected = '64f972a45e6b63d0f147dbe53f9fb210f053be2a31130a3785cae5eca0d1b4fb'
+          assert subprocess.check_output(['git', 'rev-parse', 'HEAD^'], text=True).strip() == base
+          parts = [pathlib.Path(f'tools/v08-source-part{i}.txt').read_text('ascii').strip() for i in range(6)]
+          # Restore one exactly identified missing transport character; the original full checksum remains mandatory.
+          assert hashlib.sha1(b'blob '+str(len(parts[3])).encode()+b'\0'+parts[3].encode()).hexdigest() == '277525ae97a83f30d52cd622bcdc2314a4ab92a1'
+          assert parts[3].count('X/8dubJ3/xZf') == 1
+          parts[3] = parts[3].replace('X/8dubJ3/xZf', 'X/8dubJ3j/xZf')
+          payload = ''.join(parts)
+          assert len(payload) == 29560
+          assert hashlib.sha256(payload.encode('ascii')).hexdigest() == expected, 'Transport checksum mismatch'
+          with gzip.GzipFile(fileobj=io.BytesIO(base64.b64decode(payload, validate=True))) as f:
+              raw = f.read(1000001)
+          assert len(raw) <= 1000000
+          spec = json.loads(raw)
+          assert spec['base'] == base and spec['tree'] == '637f79a557be86913b6bed4c42457d240a7fd39d'
+          assert len(spec['files']) == 31
+          planned, seen = [], set()
+          for entry in spec['files']:
+              path = pathlib.PurePosixPath(entry['path'])
+              assert not path.is_absolute() and '..' not in path.parts and '.git' not in path.parts
+              name = str(path)
+              assert name not in seen
+              seen.add(name)
+              assert name in {'README.md', 'AGENTS.md', 'pyproject.toml', '.gitignore'} or name.startswith(('src/recoil_lab/', 'tests/', 'tools/', 'docs/', '.github/workflows/', 'evidence/'))
+              local = pathlib.Path(name)
+              old = local.read_bytes() if local.exists() else b''
+              if entry['old'] is None:
+                  assert not local.exists(), name
+              else:
+                  assert hashlib.sha256(old).hexdigest() == entry['old'], name
+              text, end = old.decode('utf-8'), 0
+              for a, b, value in entry['edits']:
+                  assert type(a) is int and type(b) is int and isinstance(value, str)
+                  assert end <= a <= b <= len(text)
+                  end = b
+              for a, b, value in reversed(entry['edits']):
+                  text = text[:a] + value + text[b:]
+              new = text.encode('utf-8')
+              assert hashlib.sha256(new).hexdigest() == entry['new'], name
+              planned.append((name, new))
+          repo = os.environ['GITHUB_REPOSITORY']
+          assert repo == 'olu37776-bit/recoil-calibration-lab'
+          elements = []
+          for name, data in planned:
+              body = json.dumps({'encoding': 'base64', 'content': base64.b64encode(data).decode('ascii')}).encode()
+              req = urllib.request.Request(f'https://api.github.com/repos/{repo}/git/blobs', data=body, method='POST', headers={'Authorization': 'Bearer '+os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'})
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  result = json.load(response)
+              sha = hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              assert result['sha'] == sha, name
+              elements.append({'path': name, 'mode': '100644', 'type': 'blob', 'sha': sha})
+          report = {'base': base, 'source_payload_sha256': expected, 'expected_tree': spec['tree'], 'tree_elements': elements, 'ref_updated': False}
+          pathlib.Path('runs').mkdir(exist_ok=True)
+          pathlib.Path('runs/v08-objects.json').write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
+          print(json.dumps(report))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: V08-Source-Objects
+          path: runs/v08-objects.json
+          if-no-files-found: error
