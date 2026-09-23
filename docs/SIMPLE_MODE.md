@@ -1,4 +1,4 @@
-# 简易手动调教版 1.0 RC1
+# 简易手动调教版 1.1 RC1
 
 基线 348a430b8b98bd6ae4713b66af959537c154fa49。用户实测旧版捕获超过50ms并指出呼吸干扰，要求简单可用。独立入口 RecoilLab-Simple.exe / python -m recoil_lab.simple_app。
 
@@ -24,3 +24,15 @@ https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput
 https://pyinstaller.org/en/stable/operating-mode.html
 https://store.steampowered.com//eula/1867240_eula_0
 游戏协议禁止模拟/替代人工输入的宏和脚本，联机使用存在封禁风险；仅在明确允许的测试环境使用。
+
+
+## 1.1 本轮操作与验收
+
+基线：feature/simple-manual-20260923 @ 940c2f3f8ddcb5deb75efed09bed340432397d2c。只完善简单手动入口；不改主线和旧项目。
+精确 WRITE_SCOPE：src/recoil_lab/simple_core.py（仅版本号）、src/recoil_lab/simple_app.py、src/recoil_lab/simple_tuning.py、tests/test_simple_tuning.py、.github/workflows/simple.yml、docs/SIMPLE_MODE.md、tools/build_simple.py（打包身份记录与校验）、docs/SIMPLE_11_VERIFICATION.json（本轮本地证据）。
+
+本轮提供1/5/10三档步长、数字力度输入、撤销本次调节、记住/恢复一份手感、未保存提示和关闭/换配置确认、底边固定的开始/停止按钮、单套JSON导入导出、重开恢复上次已保存配置。条件摘要始终展示配件与手动负重；不引入新枪械系数、隐藏实验或采图依赖。
+
+记住手感只是本次编辑比较点，不是实际游戏通过证据；换配装会清空该比较点。撤销和恢复先停止输入，绝不热切正在执行的参数。保存格式沿用manual-user-v1；版本升级不迁移旧V0.8。上次选择只记录已有配置的SHA-256 key；不保存授权、目标窗口、使能或运行状态，重开依然默认关闭。导入先检查大小、重复字段、格式、数值和配装兼容，再作为未保存草稿载入；不自动覆盖配置库，不执行文件中任何代码。
+
+发布仍要求同HEAD完整回归、Windows/Linux原生GUI测试、Windows实际单文件EXE自检。新增测试必须覆盖细调、撤销、同条件比较、条件变化失效、取消丢弃、导入失败原稿不变、恶意字段拒绝、旧配置兼容、重启不恢复输入许可。原全部真实输出保护未放宽。实际鼠标、游戏接收、反作弊许可及消除呼吸均未验收，不能由自动测试替代。
