@@ -120,7 +120,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.json_reply(200,{"token":self.server.token})
         if path=="/api/catalog":
             return self.json_reply(200,public_catalog())
-        files={"/workbench.html":("workbench.html","text/html"),"/workbench.js":("workbench.js","text/javascript"),"/workbench.css":("workbench.css","text/css"),"/adaptive.html":("adaptive.html","text/html"),"/adaptive.js":("adaptive.js","text/javascript"),"/state.html":("state.html","text/html"),"/state.js":("state.js","text/javascript"),"/":("index.html","text/html"),"/app.js":("app.js","text/javascript"),"/style.css":("style.css","text/css")}
+        files={"/teaching-ui.js":("teaching-ui.js","text/javascript"),"/workbench.html":("workbench.html","text/html"),"/workbench.js":("workbench.js","text/javascript"),"/workbench.css":("workbench.css","text/css"),"/adaptive.html":("adaptive.html","text/html"),"/adaptive.js":("adaptive.js","text/javascript"),"/state.html":("state.html","text/html"),"/state.js":("state.js","text/javascript"),"/":("index.html","text/html"),"/app.js":("app.js","text/javascript"),"/style.css":("style.css","text/css")}
         if path not in files:
             return self.json_reply(404,{"error":"不存在"})
         name,mime=files[path]

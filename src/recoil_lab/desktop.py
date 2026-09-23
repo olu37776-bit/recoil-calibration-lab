@@ -87,11 +87,16 @@ class WindowsDesktop:
         self.user.GetWindowThreadProcessId(hwnd, C.byref(value))
         return value.value
 
-    def check(self, hwnd: int, resolution: list[int], pid: int) -> None:
+    def check_window(self, hwnd: int, resolution: list[int], pid: int) -> None:
         if int(self.user.GetForegroundWindow() or 0) != hwnd:
             raise CalibrationError('焦点离开目标窗口，已停止')
         if self.pid(hwnd) != pid or list(self.geometry(hwnd)[2:]) != resolution:
             raise CalibrationError('窗口进程或尺寸变化，需重新选择/标定')
+        if self.down(0x77) or self.down(0x1B):
+            raise CalibrationError("F8/Esc急停")
+
+    def check(self, hwnd: int, resolution: list[int], pid: int) -> None:
+        self.check_window(hwnd, resolution, pid)
         if self.interrupted():
             raise CalibrationError('急停或换弹/切换/姿态指令：已停止，不自动恢复')
 
@@ -102,6 +107,17 @@ class WindowsDesktop:
         image = ImageGrab.grab(bbox=(x,y,x+w,y+h), all_screens=True).convert('L')
         self.check(hwnd, resolution, pid)
         result = np.asarray(image)
+        if list(result.shape[::-1]) != resolution:
+            raise CalibrationError('采集像素与窗口尺寸不一致；检查显示缩放')
+        return result
+
+    def capture_recognition(self, hwnd: int, resolution: list[int], pid: int) -> np.ndarray:
+        """A fresh frame while action keys pause output, without cancelling the session."""
+        from PIL import ImageGrab
+        self.check_window(hwnd, resolution, pid)
+        x,y,w,h = self.geometry(hwnd)
+        result = np.asarray(ImageGrab.grab(bbox=(x,y,x+w,y+h), all_screens=True).convert('L'))
+        self.check_window(hwnd, resolution, pid)
         if list(result.shape[::-1]) != resolution:
             raise CalibrationError('采集像素与窗口尺寸不一致；检查显示缩放')
         return result

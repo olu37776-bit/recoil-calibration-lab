@@ -33,11 +33,39 @@ def main():
                 expect(page.locator("#projects option")).to_have_count(1, timeout=20000)
                 page.select_option('#projects',index=0);page.dispatch_event('#projects','change')
                 expect(page.locator("#profiles option")).to_have_count(2, timeout=20000)
-                page.click('[data-tab=calibrate]')
+                page.click('[data-tab=setup]')
+                page.fill('#name','浏览器教学测试')
+                page.fill('#build','synthetic-browser-only')
+                page.fill('#width','320');page.fill('#height','180')
+                page.fill('#weightLabel','重装')
+                page.click('#create')
+                expect(page.locator('#summary')).to_contain_text('浏览器教学测试')
+                page.click('[data-tab=teach]')
+                import numpy as np
+                from PIL import Image
+                from io import BytesIO
+                pixels=np.random.default_rng(6).integers(20,240,(180,320),dtype=np.uint8)
+                image=BytesIO();Image.fromarray(pixels).save(image,format='PNG')
+                page.locator('#teachImage').set_input_files({'name':'synthetic.png','mimeType':'image/png','buffer':image.getvalue()})
+                expect(page.locator('#teachCanvas')).to_have_attribute('width','320')
+                c=page.locator('#teachCanvas').bounding_box()
+                page.mouse.move(c['x']+230,c['y']+100);page.mouse.down()
+                page.mouse.move(c['x']+294,c['y']+132);page.mouse.up()
+                page.check('#teachConsent');page.fill('#teachSession','browser-reference')
+                page.click('#teachReference')
+                expect(page.locator('#teachBanks option')).to_have_count(2,timeout=10000)
+                page.select_option('#teachWeight','重装');page.click('#teachQuery')
+                expect(page.locator('#teachReport')).to_contain_text('MATCH')
+                expect(page.locator('#teachReport')).to_contain_text('不会输出鼠标')
+                page.reload(wait_until='networkidle')
+                page.click('[data-tab=teach]')
+                expect(page.locator('#teachBanks option')).to_have_count(2,timeout=10000)
+                page.select_option('#teachBanks',index=1)
+                expect(page.locator('#teachSamples tr')).to_have_count(1)
                 page.screenshot(path=str(out/'product-interface.png'),full_page=True)
                 browser.close()
                 if errors:raise AssertionError(errors)
-            result={'status':'PASS','mode':'actual_browser_loopback_HTTP', 'checks':['catalog','full_demo','report','export','reload_project_persistence'], 'game_tested':False,'input_tested':False}
+            result={'status':'PASS','mode':'actual_browser_loopback_HTTP', 'checks':['catalog','full_demo','report','export','reload_project_persistence','manual_weight','teach_region_save','known_image_select','recognition_bank_persistence'], 'game_tested':False,'input_tested':False}
         except Exception as exc:
             result={'status':'FAIL','mode':'actual_browser_loopback_HTTP','error':str(exc),'game_tested':False,'input_tested':False}
             raise

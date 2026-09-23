@@ -7,14 +7,17 @@ from pathlib import Path
 
 from .contracts import CalibrationError
 from .desktop import WindowsDesktop
-from .native_session import NativeSession
+from .taught_runtime import PersonalNativeSession
 from .workspace import Workspace
 
 
 class Product:
     def __init__(self, directory: Path | None = None):
         self.store = Workspace(directory)
-        self.native = NativeSession(self.store)
+        self.native = PersonalNativeSession(self.store)
+        from .teaching import Teaching
+        self.teaching = Teaching(self.store)
+        self.native.teaching = self.teaching
         self.lock = threading.RLock()
 
     def handle(self, request: dict) -> dict:
@@ -24,15 +27,21 @@ class Product:
         if action=='stop': return self.native.stop()
         if action=='status': return self.native.status()
         if action=='windows': return {'windows':WindowsDesktop().windows()}
-        if action=='native': return self.native.start(request)
         with self.lock:
+            if action=='native': return self.native.start(request)
             if self.native.worker is not None and self.native.worker.is_alive():
                 raise CalibrationError('桌面任务运行中；请先停止，再切换项目或修改校准')
             if action=='environment':
-                return {'version':'0.5.0-rc1','platform':platform.system(),
+                return {'version':'0.6.0-rc1','platform':platform.system(),
                     'native_available':platform.system()=='Windows','data_directory':str(self.store.root),
                     'mode':'supervised_calibration','game_verified':False,
-                    'notice':'默认不输出。F7使能；F8/Esc急停。没有自动识别全游戏姿态或弹量。'}
+                    'notice':'默认关闭输出。先校准、教识别并验证；负重手动选择。F7使能，F8/Esc急停。不是预训练的全游戏识别器。'}
+            if action=='teach_list': return {'banks':self.teaching.list()}
+            if action=='teach_create': return self.teaching.create(request)
+            if action=='teach_add': return self.teaching.add(request.get('bank_id'),request)
+            if action=='teach_remove': return self.teaching.remove(request.get('bank_id'),request.get('sample_id'))
+            if action=='teach_verify': return self.teaching.verify(request.get('bank_id'))
+            if action=='teach_query': return self.teaching.query(request.get('bank_id'),request.get('image'),request.get('weight','未记录'))
             if action=='projects': return {'projects':self.store.list()}
             if action=='create': return self.store.create(request.get('preset'),request.get('name',''))
             if action=='demo': return self.store.demo()

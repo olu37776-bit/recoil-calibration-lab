@@ -208,11 +208,14 @@ def build_preset(payload: dict) -> dict:
         raise CalibrationError("姿态无效")
     if not isinstance(settings["game_build"], str) or not settings["game_build"].strip() or settings["game_build"].strip().lower() in {"unknown","待填写"}:
         raise CalibrationError("请填写实际游戏版本/构建号；资料站版本不能代替游戏版本")
+    if "weight_label" in settings:
+        from .conditions import weight_label
+        context["weight_label"]=weight_label(settings["weight_label"])
     fingerprint=context_id(context)
     items=[weapon]+[cat["parts"][v] for v in selected.values() if v]
     unknown=[i["name"] for i in items if i["price"] is None]
     return {"schema_version":1,"catalog_revision":REVISION,"weapon":wid,"slots":selected,"ammo":aid,
-        "settings":{**{k:context[k] for k in keys},"bipod_deployed":deployed},"context":context,"context_id":fingerprint,
+        "settings":{**{k:context[k] for k in keys},"bipod_deployed":deployed,**({"weight_label":context["weight_label"]} if "weight_label" in context else {})},"context":context,"context_id":fingerprint,
         "known_purchase_total":sum(i["price"] for i in items if i["price"] is not None),"unknown_prices":unknown,
         "cost_scope":"gun + one magazine + selected attachments; ammunition/other kit excluded",
         "calibration_status":"UNMEASURED","sources":list(dict.fromkeys(s for i in items for s in i["sources"]))}

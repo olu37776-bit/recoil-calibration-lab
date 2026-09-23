@@ -1,8 +1,6 @@
 {
   "status": "PENDING_REMOTE_WINDOWS_BUILD",
-  "version": "0.5.0-rc1",
-  "local_source_app_self_test": "PASS",
-  "windows_frozen_executable_tested": false,
-  "game_tested": false,
-  "note": "Use GitHub run and release metadata for actual package status."
+  "version": "0.6.0-rc1",
+  "note": "Local source HTTP self-test passed; frozen Windows build must be checked on this commit.",
+  "game_tested": false
 }
