@@ -82,7 +82,8 @@ def test_portable_roundtrip(rate, tmp_path):
 
 
 @pytest.mark.parametrize('raw', [b'', b'{', b'[]', b'{}', b'\xff', b'X' * 32769,
-                                 b'{"format":"a","format":"b"}', b'[' * 1000 + b']' * 1000])
+                                 b'{"format":"a","format":"b"}', b'[' * 1000 + b']' * 1000],
+                         ids=['empty','bad-json','array','wrong-schema','bad-utf8','oversized','duplicate','nested'])
 def test_bad_portable(raw):
     with pytest.raises(ValueError): import_setting(raw)
 
@@ -151,3 +152,8 @@ def test_catalog_valid_before_apply():
 def test_bad_catalog(key, value):
     s, catalog = catalog_setting()
     with pytest.raises(ValueError): validate_catalog_setting(Setting({**s.conditions, key: value}), catalog)
+
+
+def test_case_identifiers_bounded(request):
+    # Pytest writes the node id to PYTEST_CURRENT_TEST on Windows as well.
+    assert all(len(item.nodeid) < 512 for item in request.session.items)
