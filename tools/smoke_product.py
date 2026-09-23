@@ -5,7 +5,7 @@ import os
 import shutil
 import tempfile
 import threading
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, expect
 from recoil_lab.ui import LabServer
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -21,18 +21,18 @@ def main():
                 page=browser.new_page(viewport={'width':1440,'height':1000},device_scale_factor=1)
                 errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
                 page.goto(f'http://127.0.0.1:{server.server_port}/workbench.html',wait_until='networkidle',timeout=20000)
-                page.wait_for_function("document.querySelector('#weapon').options.length===14")
+                expect(page.locator("#weapon option")).to_have_count(14, timeout=20000)
                 page.click('#demo')
-                page.wait_for_function("document.querySelector('#profiles').options.length===2",timeout=20000)
+                expect(page.locator("#profiles option")).to_have_count(2, timeout=20000)
                 assert 'SIMULATED_REPLAY' in page.locator('#report').inner_text()
                 assert page.locator('#trials tr').count()==12
                 page.click('[data-tab=execute]')
                 with page.expect_download() as download:page.click('#export')
                 assert download.value.suggested_filename.endswith('.zip')
                 page.reload(wait_until='networkidle')
-                page.wait_for_function("document.querySelector('#projects').options.length===1")
+                expect(page.locator("#projects option")).to_have_count(1, timeout=20000)
                 page.select_option('#projects',index=0);page.dispatch_event('#projects','change')
-                page.wait_for_function("document.querySelector('#profiles').options.length===2")
+                expect(page.locator("#profiles option")).to_have_count(2, timeout=20000)
                 page.click('[data-tab=calibrate]')
                 page.screenshot(path=str(out/'product-interface.png'),full_page=True)
                 browser.close()

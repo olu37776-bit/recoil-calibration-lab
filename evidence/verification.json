@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-09-23T05:19:03.543580+00:00",
+  "generated_utc": "2026-09-23T05:26:53.857747+00:00",
   "status": "PASS",
   "source_unchanged_during_run": true,
   "scope": "local automated tests and synthetic replay only",
@@ -41,7 +41,7 @@
       "log": "demo-output.txt"
     }
   ],
-  "source_tree_sha256": "b2a3b1e99f2e43676caa56e594334c9e16d0fe572e6c8e6c6cdf90fa7a1fb3d5",
+  "source_tree_sha256": "d2b08f922ae7722b1d7168e5e0b4c2cac95ad13614d0758ef78657f9b5da3060",
   "source_files": {
     ".github/workflows/verification.yml": "853c4719c49277b9ca46da6917f1c19c1895302dbfc772bab9282fa2880b7dc3",
     ".gitignore": "8ba91151a8b7dffd7f35bc757646bd4bd23c4b808e68c50ca0c5f7245e1197b5",
@@ -114,7 +114,7 @@
     "tools/publish.ps1": "16b3ef67ddfd0e8daef64caad153de80f6014d5e4b7b63d377d7f1068529e5e1",
     "tools/run_app.py": "159b528be40cc4eea5dea711de49edece36eed370c66adccbf4a478eab66508e",
     "tools/smoke_adaptive.py": "198c787d3e8386270e2408b41f3bde58186db3d8bdc5e578a6498d9f213468a6",
-    "tools/smoke_product.py": "a88a4885d74a2470c9ff7df51f83beedd63c8c2cf36088ce8487c4e2bc3c9119",
+    "tools/smoke_product.py": "1cd573b2589b037eaff0497328ffc8cc00f024086c3a594c366a7f0281ddf878",
     "tools/smoke_product_dom.py": "04727d731ca1c604cef6d0cf3b537db9172465986d42fe858b77b3efe043e16e",
     "tools/verify.py": "00bee043dd6b3d3ac20a833e4a4978d1ac5567f13fb27368e26ca1b604f47788",
     "tools/verify_bounded.py": "3affa2c397b4236ed1694213b5956a5da63ff35e7abe7f1c4ee990f347c3f58d"
