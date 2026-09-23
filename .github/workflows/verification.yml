@@ -20,7 +20,54 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install -e ".[test,video,ui]"
-      - run: python tools/verify_bounded.py
+      - name: test_adaptive_hud
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_adaptive_hud.py -o faulthandler_timeout=45 --junitxml=runs/test_adaptive_hud.xml
+      - name: test_calibration
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_calibration.py -o faulthandler_timeout=45 --junitxml=runs/test_calibration.xml
+      - name: test_catalog
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_catalog.py -o faulthandler_timeout=45 --junitxml=runs/test_catalog.xml
+      - name: test_cli
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_cli.py -o faulthandler_timeout=45 --junitxml=runs/test_cli.xml
+      - name: test_contracts
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_contracts.py -o faulthandler_timeout=45 --junitxml=runs/test_contracts.xml
+      - name: test_event_replay
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_event_replay.py -o faulthandler_timeout=45 --junitxml=runs/test_event_replay.xml
+      - name: test_hud
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_hud.py -o faulthandler_timeout=45 --junitxml=runs/test_hud.xml
+      - name: test_native_capture
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_native_capture.py -o faulthandler_timeout=45 --junitxml=runs/test_native_capture.xml
+      - name: test_playback
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_playback.py -o faulthandler_timeout=45 --junitxml=runs/test_playback.xml
+      - name: test_product_runtime
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_product_runtime.py -o faulthandler_timeout=45 --junitxml=runs/test_product_runtime.xml
+      - name: test_screenshots
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_screenshots.py -o faulthandler_timeout=45 --junitxml=runs/test_screenshots.xml
+      - name: test_state
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_state.py -o faulthandler_timeout=45 --junitxml=runs/test_state.xml
+      - name: test_temporal
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_temporal.py -o faulthandler_timeout=45 --junitxml=runs/test_temporal.xml
+      - name: test_ui
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_ui.py -o faulthandler_timeout=45 --junitxml=runs/test_ui.xml
+      - name: test_video
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_video.py -o faulthandler_timeout=45 --junitxml=runs/test_video.xml
+      - name: test_workspace
+        timeout-minutes: 2
+        run: python -m pytest -vv -s tests/test_workspace.py -o faulthandler_timeout=45 --junitxml=runs/test_workspace.xml
       - run: python -m recoil_lab.app --self-test runs/app-self-test.json
       - uses: actions/upload-artifact@v4
         if: always()
@@ -45,7 +92,6 @@ jobs:
           name: browser-proof
           path: runs/
   windows-product:
-    needs: [verify, browser]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: windows-latest
     timeout-minutes: 20
@@ -65,11 +111,21 @@ jobs:
             dist/RecoilLab-*.zip
             dist/RecoilLab-*.sha256
             runs/packaged-self-test.json
+  publish:
+    needs: [verify, browser, windows-product]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Windows-Portable
+          path: package
       - name: Publish immutable prerelease
-        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "v0.5.0-rc1-$($env:GITHUB_SHA.Substring(0,7))"
-          $assets = @(Get-ChildItem dist/RecoilLab-*.zip, dist/RecoilLab-*.sha256 | ForEach-Object FullName)
-          gh release create $tag @assets --target $env:GITHUB_SHA --prerelease --title "Windows product candidate $tag" --notes "Portable Windows x64 build. Unzip the whole folder and launch RecoilLab.exe. Packaged HTTP and synthetic-pipeline smoke test passed; real game, hardware response and anti-cheat acceptance are NOT verified. Default off, explicit supervised operation only."
+          tag="v0.5.0-rc1-${GITHUB_SHA:0:7}"
+          gh release create "$tag" package/dist/RecoilLab-*.zip package/dist/RecoilLab-*.sha256 --target "$GITHUB_SHA" --prerelease --title "Windows product candidate $tag" --notes "Portable Windows x64 build. Unzip the whole folder and launch RecoilLab.exe. All verification stages and packaged HTTP/synthetic-pipeline self-test passed. Real game, hardware response and anti-cheat acceptance are NOT verified. Default off; supervised operation only."

@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-09-23T05:00:31.138349+00:00",
+  "generated_utc": "2026-09-23T05:11:22.087885+00:00",
   "status": "PASS",
   "source_unchanged_during_run": true,
   "scope": "local automated tests and synthetic replay only",
@@ -41,9 +41,9 @@
       "log": "demo-output.txt"
     }
   ],
-  "source_tree_sha256": "c00858c275e54f229c86dbf73c2e6b6071c843fe3df03a1ea24e0f27072d003a",
+  "source_tree_sha256": "4d0245ab46d46af97bc2de128ef77e9022ff963f56caf7be34bacafd824ff99e",
   "source_files": {
-    ".github/workflows/verification.yml": "6f25ba48ae99b50f3ba7129150a6208146d8de56e93abb00b8b5708e72a1885b",
+    ".github/workflows/verification.yml": "853c4719c49277b9ca46da6917f1c19c1895302dbfc772bab9282fa2880b7dc3",
     ".gitignore": "8ba91151a8b7dffd7f35bc757646bd4bd23c4b808e68c50ca0c5f7245e1197b5",
     "AGENTS.md": "2bf44a14c51b6be98d6e9bc6fc88dcf90fbe83066b4320c62b00754111a5ff6a",
     "README.md": "5a9a4e304c68e7a9624df2b05f5c6570c95e1ae56abebb6babbb61ce57b6dd88",
