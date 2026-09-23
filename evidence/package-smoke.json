@@ -1,0 +1,15 @@
+{
+  "wheel": "recoil_calibration_lab-0.2.0-py3-none-any.whl",
+  "sha256": "8368fd4e19b50e5692d4deb305edd811e6ae6ff53c8ca6a6619ff1eb229126e9",
+  "status": "PASS",
+  "checks": [
+    "wheel built with --no-deps --no-build-isolation",
+    "wheel installed into isolated target directory",
+    "CLI synthetic demo passed via installed wheel",
+    "index.html, app.js and style.css exist in installed package"
+  ],
+  "dependency_environment": "existing Linux Python dependencies, not a clean environment",
+  "windows_tested": false,
+  "game_tested": false,
+  "driver_tested": false
+}

@@ -1,0 +1,16 @@
+{
+  "ads_sensitivity": 1.0,
+  "attachments": [],
+  "dpi": 800,
+  "fov": 90.0,
+  "game_build": "FILL_IN_GAME_BUILD",
+  "input_backend": "FILL_IN_MEASURED_BACKEND",
+  "pose": "stationary",
+  "resolution": [
+    1920,
+    1080
+  ],
+  "sensitivity": 1.0,
+  "weapon": "FILL_IN_WEAPON",
+  "zoom": 1.5
+}

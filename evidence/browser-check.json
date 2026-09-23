@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "browser": "system Chromium via Playwright",
+  "scope": "DOM-only browser harness with in-process API bridge; HTTP tested separately; real browser navigation blocked by environment; localStorage persistence NOT tested; no game or driver",
+  "checks": [
+    "default Galil loaded",
+    "default 1.5x selected",
+    "PKM only its bipod + none",
+    "server-validated JSON export",
+    "image upload, native annotation and static analysis",
+    "settings change invalidates result",
+    "mobile no horizontal overflow"
+  ],
+  "page_errors": []
+}

@@ -1,0 +1,92 @@
+{
+  "generated_utc": "2026-09-23T01:28:42.927938+00:00",
+  "status": "PASS",
+  "source_unchanged_during_run": true,
+  "scope": "local automated tests and synthetic replay only",
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "packages": {
+    "numpy": "2.3.5",
+    "opencv-python-headless": "4.13.0.92",
+    "opencv-python": "4.13.0.92",
+    "pytest": "9.0.2",
+    "pytest-cov": "7.0.0",
+    "pillow": "12.3.0"
+  },
+  "commands": [
+    {
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--junitxml=evidence/junit.xml",
+        "--cov=recoil_lab",
+        "--cov-report=term-missing",
+        "--cov-report=json:evidence/coverage.json"
+      ],
+      "exit_code": 0,
+      "log": "test-output.txt"
+    },
+    {
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "recoil_lab",
+        "demo",
+        "--out",
+        "evidence/demo"
+      ],
+      "exit_code": 0,
+      "log": "demo-output.txt"
+    }
+  ],
+  "source_tree_sha256": "b472030255c01fae27b69284d1560c2759aca751b15bd7153b3786968cc2fac9",
+  "source_files": {
+    ".github/workflows/verification.yml": "0e474e5320bef693466d262563cbd1b2ccf3bcbfaab6489de43e12ab5d4b7192",
+    ".gitignore": "8ba91151a8b7dffd7f35bc757646bd4bd23c4b808e68c50ca0c5f7245e1197b5",
+    "AGENTS.md": "99dc5e6f6d482c9a3d968458012737407d34b3ca20c5268574c1d57ab68d85ff",
+    "README.md": "0cc1c23663a2b4ad628ca0158f20ad220d7c80d0fd5ec43c39755e3b138b824a",
+    "docs/CATALOG.md": "60a2e0fc0e9ca67e00542311ff9ebf7da26c0fa3d401bbd4915278d483ac190a",
+    "docs/CONTRACTS.md": "850c69c39b21cf1fa8d0e679f50f5442c9cda893114f670926e708a1a116b572",
+    "docs/CURRENT.md": "a1056b0a358e0a7c39194040f2f5869fcf40a42cf27a19bd94dd31d9d965efcd",
+    "docs/ROADMAP.md": "41d67f23a5755ccdab65e7dd20683d8b3bd72ce0c9a33395666fa51a3093be3c",
+    "docs/SCREENSHOTS.md": "3c9f6b5b1e3a5dcb3b2ad7beacf058e4684c4664b58bbf460fe120585220caa9",
+    "docs/SOURCES.md": "6db5cfef7747251108a2c1d2af6ec6ec795fe5a14cc535d8a13e89b3842d8eca",
+    "examples/context.json": "27df8cdb27c4e50150220bc30f6222f55f805db372e31ffde7303fa6926af9ba",
+    "pyproject.toml": "f645c3d0e9e36afb433a5655b9af4e7a16c5e7ec8bbd0f2696a145c85638cdc3",
+    "src/recoil_lab/__init__.py": "3584393a7d4a367905b67896adfeef9e8b6c55115cc7718fd0ad3089530b1321",
+    "src/recoil_lab/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "src/recoil_lab/calibration.py": "d6c13a6b606e957491e22b7566f1194e1280e1609396175d0cfd4f52d986aef6",
+    "src/recoil_lab/catalog.py": "b503f7c21fffcdb1a216a3e74546894bcf49b67d125ec2e684576131d8e86265",
+    "src/recoil_lab/cli.py": "4bb51f784525676ec3e061392adbba5185acd373aa7d95ef2236aa523822d8b8",
+    "src/recoil_lab/contracts.py": "35fe5b395669f0824f2ac65c4df37ae2f40e6127f2901a6b5617637b5697f362",
+    "src/recoil_lab/demo.py": "95da672f7fc9020b0dcb1953d622b702dffd3ab4312c47553049f24df4d03af7",
+    "src/recoil_lab/playback.py": "212db83c896648c6009408c709be8ad7c33abb27f46432ae290176462aaf1911",
+    "src/recoil_lab/report.py": "90595f75d2b62db1901b23641efd4dbcb65a2a5dc5d06cea5c883e7209e53d96",
+    "src/recoil_lab/screenshots.py": "868d601e1fbddf7e3aee7c4bdef6c098602685566fad099481bcabf23773b6a3",
+    "src/recoil_lab/ui.py": "154e7da57ec9cca6f8c86da7a92e942609c48724debe355cfe16e87a9aedda16",
+    "src/recoil_lab/video.py": "c15b0d3d544e940b79ef299708be5594861d7d828a6ad137c57c7c90edd36fb7",
+    "src/recoil_lab/web/app.js": "e6c194d08f933a7ffe4bcf6005df690a8e5c445fcb4560ee7905ca4874399821",
+    "src/recoil_lab/web/index.html": "fabb64adcefaaedfba77ac36a782775fb0dd6d2a560a7ebbc7896097ed91e801",
+    "src/recoil_lab/web/style.css": "db91cd59737811cf508dee67bdd3b9a6de6dc4df3514d0cba00b4263e8d8a9c5",
+    "tests/conftest.py": "b260182a24a47b97d631568ed3c4277358be5a3c39adefcc11ca5f7e8eef3337",
+    "tests/test_calibration.py": "544e84220a8d35669ebb31690c1869330f692882081137d3a7f81a5f6e845cb8",
+    "tests/test_catalog.py": "5cb023957447096c4f7f8f417df048c3f3e1a9623858614ae7e6cb43d905bd6b",
+    "tests/test_cli.py": "9dcb9829ba9e071d7f13873ad18eea4d9470da22ace8162d3e393f0f342a3578",
+    "tests/test_contracts.py": "ba0eadff30c7c9cfb04bf8bcbb48015458f08a71d0211e88be7f8da02a759555",
+    "tests/test_playback.py": "fb5d3cf491a5002b7e607eff0bbe511819fafa63cb9ee446188aeec7bbf1114d",
+    "tests/test_screenshots.py": "e5db674430fd245580156b556f82fbc4f4a45365362f6adccab2ecf3c1148f6e",
+    "tests/test_ui.py": "0a0ba010eb9aa302485bbbf3b4b0fb12d222a9aa3a04c81093ec27b0d534b331",
+    "tests/test_video.py": "5845c71378f5932a8b2654393dab09352d5d622dc1f05e78d9bddba72cc742a2",
+    "tools/check_evidence.py": "732a9876c4bdec4223eb8d39f829235b703b1a41707c6ef76b2df76019789e8e",
+    "tools/publish.ps1": "16b3ef67ddfd0e8daef64caad153de80f6014d5e4b7b63d377d7f1068529e5e1",
+    "tools/verify.py": "00bee043dd6b3d3ac20a833e4a4978d1ac5567f13fb27368e26ca1b604f47788"
+  },
+  "remote_status": "not assessed by local runner",
+  "windows_tested": false,
+  "game_tested": false,
+  "driver_tested": false,
+  "publish_script_executed": false,
+  "independent_reviewer": null
+}

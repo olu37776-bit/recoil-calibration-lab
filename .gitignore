@@ -9,6 +9,7 @@ build/
 dist/
 runs/
 data/
+screenshots/
 *.mp4
 *.avi
 *.mkv
