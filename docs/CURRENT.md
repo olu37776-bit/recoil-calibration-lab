@@ -11,3 +11,5 @@
 以evidence/verification.json及源码指纹为准。核心回归、真实HTTP自检、受限环境DOM桥接分别记录。本机浏览器HTTP导航被ERR_BLOCKED_BY_ADMINISTRATOR阻止，故不宣称本机网络浏览器E2E通过；远端增加独立真实浏览器流程。
 
 旧V0.4四组远端取消、日志404，根因未知。本轮线程化HTTP、直连带超时测试及每测试文件硬超时用于消除/定位等待风险，不声称已证实旧根因。Windows便携包只有Linux/Windows验证、远端浏览器流程、打包程序自检通过才发布提交绑定的prerelease。未读到成功制品前不得称已有EXE。
+
+本轮排障已复现：test_bad_image 的10MB参数被pytest自动展开为10,000,043字节的测试ID，verbose和JUnit会携带该巨型名称。已设置短的显式ID，保留原10MB拒绝测试输入与断言。此为已确认日志放大缺陷；旧任务取消是否完全由此引起仍需新远端结果验证。

@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-09-23T05:11:22.087885+00:00",
+  "generated_utc": "2026-09-23T05:19:03.543580+00:00",
   "status": "PASS",
   "source_unchanged_during_run": true,
   "scope": "local automated tests and synthetic replay only",
@@ -41,7 +41,7 @@
       "log": "demo-output.txt"
     }
   ],
-  "source_tree_sha256": "4d0245ab46d46af97bc2de128ef77e9022ff963f56caf7be34bacafd824ff99e",
+  "source_tree_sha256": "b2a3b1e99f2e43676caa56e594334c9e16d0fe572e6c8e6c6cdf90fa7a1fb3d5",
   "source_files": {
     ".github/workflows/verification.yml": "853c4719c49277b9ca46da6917f1c19c1895302dbfc772bab9282fa2880b7dc3",
     ".gitignore": "8ba91151a8b7dffd7f35bc757646bd4bd23c4b808e68c50ca0c5f7245e1197b5",
@@ -50,7 +50,7 @@
     "docs/AUTOMATION.md": "3fa15da9afb56b37a6037dd546357946a919747fea740af229aa39d701b3e6b2",
     "docs/CATALOG.md": "60a2e0fc0e9ca67e00542311ff9ebf7da26c0fa3d401bbd4915278d483ac190a",
     "docs/CONTRACTS.md": "8c055b6f2fb63c5f5608e65b37d6dbd425928d7e28dcc634c3a8ae8f012647fb",
-    "docs/CURRENT.md": "bea8a5b07dfaaa3c2633013c0861ff53fb83b6722747a5f83f9cc1e4049b0b34",
+    "docs/CURRENT.md": "200419bb78ced544d87a7da022764ff4d855683a64cdc3af2a85dc53018f9a71",
     "docs/DEVICE_SUPPORT.md": "9e91a7f8feefbe2d66083331f26609dcfa81589a16c503b1da39dce04d1b02ed",
     "docs/PRODUCT_V05.md": "090b5cb63949c9873ceec57e707320a6627efc2cb5753ffa33d84671f43ad426",
     "docs/QUICKSTART.md": "187ba82e37b32fbfa24c91c56610b17c51b281b4364ab885e2041307ebf27235",
@@ -103,7 +103,7 @@
     "tests/test_native_capture.py": "fb4888bf8193796729ea24a0d37245f9cf53e058f9e080887239fcbc4208673d",
     "tests/test_playback.py": "fb5d3cf491a5002b7e607eff0bbe511819fafa63cb9ee446188aeec7bbf1114d",
     "tests/test_product_runtime.py": "10030bb5788cba13abae94a12e0328b6942b9d7008ff0ede552faebaaf52f5b5",
-    "tests/test_screenshots.py": "e5db674430fd245580156b556f82fbc4f4a45365362f6adccab2ecf3c1148f6e",
+    "tests/test_screenshots.py": "d50d876d24a05679390e570790cfe7fcb762f106faaf0cb770652681ffa6d558",
     "tests/test_state.py": "af599322437e85ada0cea63f29c0a5ddb72bb6d09e6fecfe9310a19cbeedb941",
     "tests/test_temporal.py": "d7d20deee83812fc1eea2f89725ea780a302ac21f7180d32919def6067a8b8cd",
     "tests/test_ui.py": "2eb642dc5e0d76cf79c2c12eddd343fa6ac1f2ba8aeea4f629ef7e8e7b5ff941",

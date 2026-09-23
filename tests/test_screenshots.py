@@ -38,7 +38,8 @@ def test_bad_annotations(aim,points):
     with pytest.raises(CalibrationError):pattern_summary(texture(),aim,points,'hash',context())
 
 
-@pytest.mark.parametrize('value',[None,'','bad','data:text/html;base64,abcd','abcd'*2500000])
+@pytest.mark.parametrize('value',[None,'','bad','data:text/html;base64,abcd','abcd'*2500000],
+                         ids=['null','empty','malformed','wrong-mime','oversized-10mb'])
 def test_bad_image(value):
     with pytest.raises(CalibrationError):decode_image(value)
 

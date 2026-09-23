@@ -33,4 +33,4 @@ src/recoil_lab/workspace.py          223     30    87%   28-29, 47, 95, 150-151,
 ----------------------------------------------------------------
 TOTAL                               2097    271    87%
 Coverage JSON written to file evidence/coverage.json
-317 passed in 12.51s
+317 passed in 12.27s
