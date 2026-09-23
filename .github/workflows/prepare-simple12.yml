@@ -1,0 +1,57 @@
+name: Prepare checked Simple12 source objects
+on:
+  push:
+    branches: ['build/simple12-*']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify baseline and create source blobs only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import pathlib, hashlib, json, subprocess, os, urllib.request, base64
+          base = '0d79b4f336c3935cd104101aadc0ad83c0d7f01d'
+          assert subprocess.check_output(['git','rev-parse','HEAD^'],text=True).strip() == base
+          assert os.environ['GITHUB_REPOSITORY'] == 'olu37776-bit/recoil-calibration-lab'
+          spec = json.loads(r'''[{"path":"src/recoil_lab/simple_core.py","old":"e22f2d6211741d9ca30511fd252177d402cfd2914d1cc9dad89f77288a36fabf","new":"ffa9383f24620a902e36ea913c8a2e62d78e030d48200a9ebbd04cf3f49cca33","edits":[[285,286,"2"]]},{"path":"src/recoil_lab/simple_app.py","old":"83dc29d461051376729bcd54c32bdc5219b55ec2144148db73e4d07af971d5e4","new":"cc9ea20fc318e0173020a250b1eaeacbd55588b0f50466962dce9410f57e0254","edits":[[345,353,""],[367,367,"\nfrom .simple_quick import QuickRunner as Runner\nfrom .simple_quick_ui import QuickControls"],[8155,8162,"；可选松手快捷"],[8163,8164,"节。"],[10132,10132,")\n        self.quick=QuickControls(self"],[12754,12754,"\n        if not self.silent:"],[14396,14396,"    if hasattr(self,'quick'):self.quick.options_changed()\n    "],[15839,15839,"\n        if hasattr(self,'quick'):self.quick.sync()"],[20305,20305,"\n            self.quick.prepare()\n            "],[20481,20481,"\n        "],[20499,20500,"\n        if hasattr(self,'quick'):self.quick.sync()\n        "],[20557,20557,"\n        self.quick.sync()"],[29062,29062,"\n        "],[29087,29088,"\n        from .simple_quick_ui import self_test as quick_test\n        quick_test(args.self_test)\n        "]]},{"path":"tools/build_simple.py","old":"3289080295793f8afb60512445f0586f82d3044894bdb23eef3bcd53db87184b","new":"2c819aa162f324a383750f5dbaa77cb344a6f8b0b700d172236728f9cb6718db","edits":[[1343,1343,"("],[1397,1397," or\n        'quick_restart_keeps_settings_not_permission' not in result.get('checks',[]))"]]},{"path":".github/workflows/simple.yml","old":"b9123f23ef4272139a1f8a01b85cd01a7925bcd79b7cee008175894e582b92d4","new":"8ab7ff3baf2848278594b62f79da8535929e0296d12131b78b3b3a149084555b","edits":[[3098,3102,","],[3116,3116," and opt-in between-burst F5/F6 adjustments"]]},{"path":"docs/SIMPLE_MODE.md","old":"72e73f37d486d8fd916119a273dcb1bf900ca0a321113705fa759fa76c06acca","new":"0563fda48b73ea72d83bcb5c2364f7c9610daf8f03c03614a539cd7b5450d1fa","edits":[[12,13,"2"],[2582,2582,"\n\n## 1.2 松手调节\n\n继续只完善简易手动入口，不需要录屏、DPI或图像响应校准。实施范围与验收见 SIMPLE_12_PLAN.md。本版本不改main旧自动校准流程。\n\n在主界面勾选“松手后用 F5 / F6 调节（可选）”，选择步长1、5或10，再按原方式选择窗口、确认、开始。**先松开 F7、鼠标左右键和F5/F6**，然后 F5 减小、F6 增大当前力度；按住不会重复累计。新力度同步回主界面的未保存草稿、撤销历史后，松开全部按键，再主动用 F7+右键+左键试射。\n\n开火、开镜或按着F7时按F5/F6，会暂停本梭并拒绝调节，不会偷偷排队。两键同时按、启动前已按住的快捷键、陈旧应答不会修改参数。修改没有延长原120秒会话；普通按钮调节、换弹或切枪等仍按原规则停止。要长期保留仍需回主界面“保存这套”，手动保存不等于验证通过。\n\n“显示状态小窗”是普通可移动置顶窗口，显示配装、力度与启停提示。不读取、不覆盖游戏内部界面；独占全屏可能看不到。打开/关闭小窗会停止当前输出，准备好后再点开始。快捷键可能与游戏本身的F5/F6绑定冲突，本程序不吞键，出现冲突可取消该选项。功能默认关闭且不保存输入许可。\n\n实际输入沿用原标准Windows接口和所有限幅、时间、焦点、释放与急停检查。没有自动识别、自动弹痕检测、呼吸消除、自动点击或反作弊绕过。真实电脑/实体鼠标/游戏效果仍未验收。\n\n技术资料核对：\nhttps://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate\nhttps://www.tcl-lang.org/man/tcl8.7/TkCmd/wm.html\n"]]}]''')
+          elements = []
+          for entry in spec:
+              name = entry['path']
+              assert name in {'src/recoil_lab/simple_core.py','src/recoil_lab/simple_app.py','tools/build_simple.py','.github/workflows/simple.yml','docs/SIMPLE_MODE.md'}
+              old = subprocess.check_output(['git','show',base+':'+name])
+              assert hashlib.sha256(old).hexdigest() == entry['old'], name
+              text = old.decode('utf-8')
+              last = 0
+              for a,b,value in entry['edits']:
+                  assert last <= a <= b <= len(text)
+                  last = b
+              for a,b,value in reversed(entry['edits']):
+                  text = text[:a]+value+text[b:]
+              raw = text.encode('utf-8')
+              assert hashlib.sha256(raw).hexdigest() == entry['new'], name
+              data = json.dumps({'encoding':'base64','content':base64.b64encode(raw).decode('ascii')}).encode()
+              request = urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs',data=data,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(request,timeout=30) as response:
+                  blob = json.load(response)
+              expected = hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              assert blob['sha'] == expected, name
+              elements.append({'path':name,'mode':'100644','type':'blob','sha':expected})
+          pathlib.Path('runs').mkdir(exist_ok=True)
+          report = {'base':base,'expected_final_tree':'13af6c81225d8c90a2b63214398dda7049f9b8cb','elements':elements,'refs_updated':False}
+          pathlib.Path('runs/simple12-objects.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(report))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Simple12-Source-Objects
+          path: runs/simple12-objects.json
+          if-no-files-found: error
