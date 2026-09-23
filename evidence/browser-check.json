@@ -1,18 +1,12 @@
 {
-  "version": "0.4.0",
   "status": "PASS",
-  "scope": "DOM and in-process API bridge; browser network navigation blocked by environment",
+  "scope": "DOM with in-process API bridge; NOT network E2E",
   "checks": [
-    "first-reference drag maps CSS coordinates to original pixels",
-    "query dimensions read automatically",
-    "automatic cross-resolution candidate displayed",
-    "local reference pack export and reimport",
-    "missing icon produces unknown",
-    "input change invalidates previous result",
-    "mobile no horizontal overflow"
+    "catalog choices",
+    "full demo",
+    "displayed report",
+    "data table"
   ],
-  "page_errors": [],
-  "browser_network_e2e": false,
   "game_tested": false,
-  "driver_tested": false
+  "mouse_output_tested": false
 }

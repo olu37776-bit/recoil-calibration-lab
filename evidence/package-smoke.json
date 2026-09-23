@@ -1,17 +1,8 @@
 {
-  "version": "0.4.0",
-  "status": "PASS",
-  "wheel": "recoil_calibration_lab-0.4.0-py3-none-any.whl",
-  "sha256": "c66c40ebf2791332c2c38521b8f1e17d4c5e8ed61829ec10a7ea8094622301f8",
-  "checks": [
-    "wheel built without downloading dependencies",
-    "installed into separate target directory",
-    "CLI synthetic demo from installed wheel outside source tree",
-    "new adaptive HTML/JS included",
-    "existing empty-state recording-only demo works"
-  ],
-  "dependency_environment": "existing Linux Python dependencies, not a clean environment",
-  "windows_tested": false,
+  "status": "PENDING_REMOTE_WINDOWS_BUILD",
+  "version": "0.5.0-rc1",
+  "local_source_app_self_test": "PASS",
+  "windows_frozen_executable_tested": false,
   "game_tested": false,
-  "driver_tested": false
+  "note": "Use GitHub run and release metadata for actual package status."
 }

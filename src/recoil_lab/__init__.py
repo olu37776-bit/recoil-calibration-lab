@@ -1,2 +1,2 @@
-"""Offline calibration core. No operating-system input or game integration."""
-__version__ = "0.4.0"
+"""Calibration core and explicitly armed desktop test workflow."""
+__version__ = "0.5.0rc1"

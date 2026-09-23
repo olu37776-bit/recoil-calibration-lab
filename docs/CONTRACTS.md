@@ -1,4 +1,4 @@
-# 核心数据与执行契约（V0.2 保留 V0.1 算法）
+# 核心数据与执行契约（V0.5，保留原有算法约束）
 
 ## 1. Context
 
@@ -30,7 +30,7 @@ t_s,dx_px,dy_px,uy_counts,confidence,valid
 
 测量模型：`dy(t) = recoil(t) + gain * u(t-latency)`。
 
-`gain_px_per_count` 可以为正或负，但不能为零；通过至少两轮无射击、含正负方向输入的记录稳健拟合。`latency_s` 在本版由操作者提供，默认0；**没有实现自动延迟识别**。模型假设当前状态附近局部线性。不符合残差门禁时拒绝标定。
+`gain_px_per_count` 可以为正或负，但不能为零；通过至少两轮无射击、含正负方向输入的记录稳健拟合。核心函数的 `latency_s` 由调用方提供，默认0；V0.5工作台新增有限候选搜索，见第10节。模型假设当前状态附近局部线性。不符合残差门禁时拒绝标定。
 
 拟合不自动修复错误单位/错误延迟，也不会用分辨率和DPI直接换算出未测量的 gain。
 
@@ -54,7 +54,7 @@ t_s,dx_px,dy_px,uy_counts,confidence,valid
 
 `SIMULATED_REPLAY`：合成回放。`RECORDED_REPLAY`：有匹配输入记录的录制回放。`MODEL_PREDICTION`：没有实际执行候选的反事实预测。
 
-`KEEP_CANDIDATE_IN_LAB` 只表示本地实验门禁通过；`PREDICTION_ONLY` 不允许当成实测通过；`KEEP_PREVIOUS` 表示候选未过门禁。程序不会自动覆盖旧 profile 文件来实现版本替换，操作者保留旧文件；没有实现自动版本注册中心。`game_verified` 始终为 false。
+`KEEP_CANDIDATE_IN_LAB` 只表示本地实验门禁通过；`PREDICTION_ONLY` 不允许当成实测通过；`KEEP_PREVIOUS` 表示候选未过门禁。程序不会自动覆盖旧 profile 文件来实现版本替换，V0.5工作台自动保存不同版本并提供选择/回退。`game_verified` 始终为 false。
 
 ## 6. 驱动接口与回放状态机
 
@@ -63,7 +63,7 @@ class MotionSink(Protocol):
     def move(self, t_s: float, dx_counts: int, dy_counts: int) -> None: ...
 ```
 
-`t_s` 是该次连射的相对秒数，move 是增量而非累计位置。当前只有 `RecordingSink`，写入内存事件列表。`Playback.tick()` 由外层提供单调时钟、按键状态、ADS、窗口焦点和配置指纹。
+`t_s` 是该次连射的相对秒数，move 是增量而非累计位置。原离线回放使用 `RecordingSink`，写入内存事件列表；V0.5新增的受控Windows后端见第10节。`Playback.tick()` 由外层提供单调时钟、按键状态、ADS、窗口焦点和配置指纹。
 
 程序启动时要求先释放开火键；松开立即停止。丢失焦点、离开ADS、配置变化、时钟异常或调度间隔超过100ms，锁定为等待释放状态；不会恢复后补发积压位移。累计值取整后发增量，避免每次小数截断累积误差。超过曲线长度后停止，按住不自动重启下一轮。
 
@@ -80,3 +80,13 @@ class MotionSink(Protocol):
 ## 9. V0.4几何适配
 
 HUD参考图定位允许不同尺寸并返回原图坐标，但不修改Trial原始像素、不自动变更Context、不缩放Profile counts。跨分辨率的HUD候选不能作为响应标定或曲线验证证据。见AUTOMATION.md。
+
+## 10. V0.5监督执行与事件证据
+
+见PRODUCT_V05.md与QUICKSTART.md。旧RecordingSink/StatePlayback约束保留。Windows后端使用新的context.input_backend=windows-sendinput-v1，旧recording-only数据不隐式升级。
+
+工作台支持0至150ms有限网格搜索响应延迟，保存方法与候选数量；这是估计，不是硬件认证，核心fit_response显式API不变。
+
+录制回放新增实际接受事件日志校验：时间递增、累计整数输入、每事件匹配候选、图像样本与事件阶梯一致、完整末尾覆盖；仍以测得残余决定通过。事件日志一致性不是来源真实性或游戏接收认证。
+
+手动监督模式不消费未经验证的HUD候选。授权+前台窗口/PID/尺寸+F7+右键/左键不替代真实姿态和弹量识别；常见动作键只中断任务。不能称全自动游戏状态机。

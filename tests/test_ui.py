@@ -35,22 +35,23 @@ def test_local_server_tokens_and_assets():
     with LabServer(0) as server:
         thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
         root='http://127.0.0.1:'+str(server.server_port)
+        opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
         try:
-            with urllib.request.urlopen(root+'/') as r:
+            with opener.open(root+'/',timeout=5) as r:
                 assert '选配装'.encode() in r.read()
                 assert "frame-ancestors 'none'" in r.headers['Content-Security-Policy']
-            with urllib.request.urlopen(root+'/api/catalog') as r:assert len(json.load(r)['weapons'])==14
+            with opener.open(root+'/api/catalog',timeout=5) as r:assert len(json.load(r)['weapons'])==14
             req=urllib.request.Request(root+'/api/preset',data=json.dumps(config()).encode(),headers={'Content-Type':'application/json'})
-            with pytest.raises(urllib.error.HTTPError) as e:urllib.request.urlopen(req)
+            with pytest.raises(urllib.error.HTTPError) as e:opener.open(req,timeout=5)
             assert e.value.code==403
             req.add_header('X-Lab-Token',server.token)
-            with urllib.request.urlopen(req) as r:assert json.load(r)['calibration_status']=='UNMEASURED'
+            with opener.open(req,timeout=5) as r:assert json.load(r)['calibration_status']=='UNMEASURED'
             req=urllib.request.Request(root+'/api/bootstrap',headers={'Host':'evil.invalid'})
-            with pytest.raises(urllib.error.HTTPError) as e:urllib.request.urlopen(req)
+            with pytest.raises(urllib.error.HTTPError) as e:opener.open(req,timeout=5)
             assert e.value.code==403
             for path in ['/style.css','/app.js','/state.html','/state.js','/adaptive.html','/adaptive.js']:
-                with urllib.request.urlopen(root+path) as r:assert len(r.read())>100
-            with pytest.raises(urllib.error.HTTPError) as e:urllib.request.urlopen(root+'/../../etc/passwd')
+                with opener.open(root+path,timeout=5) as r:assert len(r.read())>100
+            with pytest.raises(urllib.error.HTTPError) as e:opener.open(root+'/../../etc/passwd',timeout=5)
             assert e.value.code==404
         finally:
             server.shutdown();thread.join(timeout=3)

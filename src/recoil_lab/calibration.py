@@ -123,6 +123,39 @@ def refine_profile(previous: Profile, trials: list[Trial], *, learning_rate: flo
                    parent_id=previous.profile_id)
 
 
+def _event_replay(profile: Profile, trial: Trial) -> bool:
+    """Check actual, integer accepted-event records without inventing missing input.
+
+    This verifies consistency, not authenticity or that an external game accepted
+    the events. The independently measured residual still decides pass/fail.
+    """
+    events = trial.provenance.get("input_events")
+    if trial.provenance.get("candidate_id") != profile.profile_id or not isinstance(events, list) or not events:
+        return False
+    try:
+        stamps = np.asarray([e["t_s"] for e in events], dtype=float)
+        values = np.asarray([e["uy_counts"] for e in events], dtype=float)
+        if (not np.isfinite(stamps).all() or not np.isfinite(values).all() or
+            stamps[0] < 0 or np.any(np.diff(stamps) <= 0) or stamps[-1] > trial.t_s[-1] or
+            np.any(values != np.rint(values)) or
+            np.max(np.abs(values - profile.input_at(stamps))) > .51 or
+            abs(values[-1] - profile.uy_counts[-1]) > .51):
+            return False
+        # Recorded image samples must agree with the accepted input log exactly.
+        idx = np.searchsorted(stamps, trial.t_s, side="right") - 1
+        observed = np.where(idx >= 0, values[np.maximum(0, idx)], 0.)
+        if np.max(np.abs(observed - trial.uy_counts)) > 1e-6:
+            return False
+        # No undocumented late/missing changes hidden between measurement frames.
+        grid = np.linspace(0, profile.t_s[-1], max(21, int(profile.t_s[-1]*200)+1))
+        j = np.searchsorted(stamps, grid, side="right") - 1
+        step = np.where(j >= 0, values[np.maximum(0, j)], 0.)
+        tolerance = .51 + profile.max_speed_counts_s * .1
+        return bool(np.max(np.abs(step-profile.input_at(grid))) <= tolerance)
+    except (KeyError, TypeError, ValueError, IndexError):
+        return False
+
+
 def validate_profile(profile: Profile, trials: list[Trial], *, previous: Profile | None = None,
                      min_improvement: float = .5, max_peak_px: float = 20.) -> dict:
     """Validate on held-out captures; distinguish prediction from recorded replay.
@@ -154,7 +187,7 @@ def validate_profile(profile: Profile, trials: list[Trial], *, previous: Profile
         intrinsic = np.interp(grid, trial.t_s, trial.dy_px - profile.response.effect(trial))
         predicted = intrinsic + profile.effect_at(grid)
         applied = np.interp(grid, trial.t_s, trial.uy_counts)
-        replayed = bool(np.max(np.abs(applied - profile.input_at(grid))) <= .51)
+        replayed = bool(np.max(np.abs(applied - profile.input_at(grid))) <= .51) or _event_replay(profile, trial)
         all_replayed &= replayed
         # Recorded replay uses measured residual, not a corrected prediction.
         residual = np.interp(grid, trial.t_s, trial.dy_px) if replayed else predicted
@@ -189,6 +222,6 @@ def validate_profile(profile: Profile, trials: list[Trial], *, previous: Profile
             "thresholds": {"min_improvement": min_improvement, "max_peak_px": max_peak_px},
             "limitations": ["Vertical displacement only; not bullet-impact accuracy",
                             "No live game, mouse driver or anti-cheat integration tested",
-                            "Latency is an operator-supplied parameter, not automatically identified",
+                            "Latency is a model parameter; UI grid-search estimates are not hardware certification",
                             "A previous-profile comparison is a model prediction, not a paired live replay"],
             "trials": details}

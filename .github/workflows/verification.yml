@@ -1,4 +1,4 @@
-name: Verification System
+name: Verification and Windows Product
 on:
   push:
     branches: [main]
@@ -7,24 +7,69 @@ on:
 permissions:
   contents: read
 jobs:
-  core-and-video:
-    timeout-minutes: 10
+  verify:
+    timeout-minutes: 12
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python: ['3.12', '3.13']
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
+          python-version: '3.12'
       - run: python -m pip install -e ".[test,video,ui]"
-      - run: python -m pytest -vv --junitxml=runs/junit.xml --cov=recoil_lab --cov-report=term-missing --cov-report=json:runs/coverage.json
-      - run: python -m recoil_lab demo --out runs/demo
+      - run: python tools/verify_bounded.py
+      - run: python -m recoil_lab.app --self-test runs/app-self-test.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: verification-${{ matrix.os }}-py${{ matrix.python }}
+          name: verification-${{ matrix.os }}
           path: runs/
+  browser:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e ".[ui,video]" playwright
+      - run: python -m playwright install --with-deps chromium
+      - run: python tools/smoke_product.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-proof
+          path: runs/
+  windows-product:
+    needs: [verify, browser]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e ".[ui,video]" "pyinstaller>=6.11,<7"
+      - run: python tools/build_windows.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Windows-Portable
+          path: |
+            dist/RecoilLab-*.zip
+            dist/RecoilLab-*.sha256
+            runs/packaged-self-test.json
+      - name: Publish immutable prerelease
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "v0.5.0-rc1-$($env:GITHUB_SHA.Substring(0,7))"
+          $assets = @(Get-ChildItem dist/RecoilLab-*.zip, dist/RecoilLab-*.sha256 | ForEach-Object FullName)
+          gh release create $tag @assets --target $env:GITHUB_SHA --prerelease --title "Windows product candidate $tag" --notes "Portable Windows x64 build. Unzip the whole folder and launch RecoilLab.exe. Packaged HTTP and synthetic-pipeline smoke test passed; real game, hardware response and anti-cheat acceptance are NOT verified. Default off, explicit supervised operation only."

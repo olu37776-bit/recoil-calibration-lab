@@ -1,9 +1,9 @@
-"""Loopback-only armory and offline image analysis; never emits mouse input."""
+"""Loopback-only UI with authenticated, opt-in product session routes."""
 from __future__ import annotations
 
 import argparse
 import base64
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from io import BytesIO
 import json
 from pathlib import Path
@@ -66,11 +66,23 @@ def process(path: str, payload: dict) -> dict:
     raise CalibrationError("未知分析入口")
 
 
-class LabServer(HTTPServer):
+class LabServer(ThreadingHTTPServer):
+    daemon_threads=True
     allow_reuse_address=True
-    def __init__(self,port: int=8765):
+    def __init__(self,port: int=8765, data_directory: Path | None = None):
         super().__init__(("127.0.0.1",port),Handler)
         self.token=secrets.token_urlsafe(32)
+        self.data_directory=data_directory
+        self.product=None
+        import threading
+        self.product_lock=threading.Lock()
+
+    def product_service(self):
+        with self.product_lock:
+            if self.product is None:
+                from .product import Product
+                self.product=Product(self.data_directory)
+        return self.product
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -78,9 +90,14 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self,format,*args):
         pass  # No filenames, image payloads or personal settings in access logs.
 
+    def setup(self):
+        super().setup()
+        self.connection.settimeout(15)
+
     def local_request(self) -> bool:
         expected={f"127.0.0.1:{self.server.server_port}",f"localhost:{self.server.server_port}"}
-        return self.headers.get("Host") in expected
+        origin=self.headers.get("Origin")
+        return self.headers.get("Host") in expected and (origin is None or origin in {"http://"+h for h in expected})
 
     def respond(self,status: int,data: bytes,content_type: str):
         self.send_response(status)
@@ -103,7 +120,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.json_reply(200,{"token":self.server.token})
         if path=="/api/catalog":
             return self.json_reply(200,public_catalog())
-        files={"/adaptive.html":("adaptive.html","text/html"),"/adaptive.js":("adaptive.js","text/javascript"),"/state.html":("state.html","text/html"),"/state.js":("state.js","text/javascript"),"/":("index.html","text/html"),"/app.js":("app.js","text/javascript"),"/style.css":("style.css","text/css")}
+        files={"/workbench.html":("workbench.html","text/html"),"/workbench.js":("workbench.js","text/javascript"),"/workbench.css":("workbench.css","text/css"),"/adaptive.html":("adaptive.html","text/html"),"/adaptive.js":("adaptive.js","text/javascript"),"/state.html":("state.html","text/html"),"/state.js":("state.js","text/javascript"),"/":("index.html","text/html"),"/app.js":("app.js","text/javascript"),"/style.css":("style.css","text/css")}
         if path not in files:
             return self.json_reply(404,{"error":"不存在"})
         name,mime=files[path]
@@ -122,7 +139,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_reply(413,{"error":"请求体须介于 1 字节与 32 MiB"})
             self.connection.settimeout(15)
             payload=json.loads(self.rfile.read(size))
-            result=process(urlsplit(self.path).path,payload)
+            path=urlsplit(self.path).path
+            result=self.server.product_service().handle(payload) if path=="/api/product" else process(path,payload)
             return self.json_reply(200,result)
         except (CalibrationError,ValueError,TypeError,KeyError,OSError) as exc:
             return self.json_reply(400,{"error":str(exc)})
@@ -136,7 +154,7 @@ def main():
     args=p.parse_args()
     with LabServer(args.port) as server:
         print(f"Recoil Calibration Lab: http://127.0.0.1:{server.server_port}",flush=True)
-        print("仅本机；图片不写入仓库；Ctrl+C 退出；不执行鼠标输入。",flush=True)
+        print("仅本机；图片不写入仓库；Ctrl+C 退出；鼠标输出默认关闭。",flush=True)
         try:
             server.serve_forever()
         except KeyboardInterrupt:
