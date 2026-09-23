@@ -48,7 +48,7 @@ def test_local_server_tokens_and_assets():
             req=urllib.request.Request(root+'/api/bootstrap',headers={'Host':'evil.invalid'})
             with pytest.raises(urllib.error.HTTPError) as e:urllib.request.urlopen(req)
             assert e.value.code==403
-            for path in ['/style.css','/app.js','/state.html','/state.js']:
+            for path in ['/style.css','/app.js','/state.html','/state.js','/adaptive.html','/adaptive.js']:
                 with urllib.request.urlopen(root+path) as r:assert len(r.read())>100
             with pytest.raises(urllib.error.HTTPError) as e:urllib.request.urlopen(root+'/../../etc/passwd')
             assert e.value.code==404
@@ -66,3 +66,16 @@ def test_hud_route():
     from test_hud import payload
     r=process('/api/hud-compare',payload())
     assert r['label']=='standing' and not r['auto_execution_eligible']
+
+
+def test_adaptive_route():
+    from test_adaptive_hud import payload
+    r=process('/api/hud-adaptive',payload())
+    assert r['label']=='standing' and not r['auto_execution_eligible']
+
+
+def test_adaptive_sequence_route():
+    from test_adaptive_hud import payload
+    p=payload();p.update(images=[p['image']]*2,timestamps=[0,.04])
+    r=process('/api/hud-sequence',p)
+    assert r['frames']==2 and not r['trace'][-1]['temporal']['stable']

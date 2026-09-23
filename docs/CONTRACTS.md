@@ -76,3 +76,7 @@ class MotionSink(Protocol):
 ## 8. V0.3 状态反馈
 
 新增StatePlayback外层门禁，原Playback协议保持兼容；完整状态快照、陈旧门禁、恢复需释放、精确Context选择及HUD候选不能自动执行的规则见STATE_FEEDBACK.md。
+
+## 9. V0.4几何适配
+
+HUD参考图定位允许不同尺寸并返回原图坐标，但不修改Trial原始像素、不自动变更Context、不缩放Profile counts。跨分辨率的HUD候选不能作为响应标定或曲线验证证据。见AUTOMATION.md。

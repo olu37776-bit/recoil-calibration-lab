@@ -15,3 +15,12 @@
 ## V0.3
 
 鼠标官方核对见DEVICE_SUPPORT.md。归一化相关参考：OpenCV Template Matching https://docs.opencv.org/4.x/d4/dc6/tutorial_py_template_matching.html 。本版以NumPy实现固定ROI零均值相关，不等同于已训练识别模型。
+
+## V0.4实现参考（2026-09-23查阅）
+
+- OpenCV模板匹配：https://docs.opencv.org/4.x/d4/dc6/tutorial_py_template_matching.html
+- OpenCV图像缩放与几何变换：https://docs.opencv.org/4.x/da/d54/group__imgproc__transform.html
+- OpenCV相机内参/像素坐标：https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html
+- Microsoft DPI与屏幕坐标：https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-screenscaling
+
+这里只引用公开API原理，不声称其提供WARDOGS识别模型或保证本项目准确率。

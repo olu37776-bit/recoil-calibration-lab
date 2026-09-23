@@ -1,2 +1,2 @@
 """Offline calibration core. No operating-system input or game integration."""
-__version__ = "0.3.0"
+__version__ = "0.4.0"

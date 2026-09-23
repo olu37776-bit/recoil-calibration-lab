@@ -14,6 +14,7 @@ import zipfile
 
 from .catalog import public_catalog, build_preset
 from .hud import compare_hud
+from .adaptive_hud import compare_adaptive, compare_sequence
 from .state_demo import run_state_demo
 from .contracts import CalibrationError, canonical, save_trial
 from .screenshots import decode_image, pattern_summary, pair_displacement, screenshot_sequence
@@ -25,6 +26,10 @@ STATIC=Path(__file__).parent/"web"
 def process(path: str, payload: dict) -> dict:
     if not isinstance(payload,dict):
         raise CalibrationError("请求必须是 JSON 对象")
+    if path=="/api/hud-adaptive":
+        return compare_adaptive(payload)
+    if path=="/api/hud-sequence":
+        return compare_sequence(payload)
     if path=="/api/state-demo":
         return run_state_demo(payload)
     if path=="/api/hud-compare":
@@ -98,7 +103,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.json_reply(200,{"token":self.server.token})
         if path=="/api/catalog":
             return self.json_reply(200,public_catalog())
-        files={"/state.html":("state.html","text/html"),"/state.js":("state.js","text/javascript"),"/":("index.html","text/html"),"/app.js":("app.js","text/javascript"),"/style.css":("style.css","text/css")}
+        files={"/adaptive.html":("adaptive.html","text/html"),"/adaptive.js":("adaptive.js","text/javascript"),"/state.html":("state.html","text/html"),"/state.js":("state.js","text/javascript"),"/":("index.html","text/html"),"/app.js":("app.js","text/javascript"),"/style.css":("style.css","text/css")}
         if path not in files:
             return self.json_reply(404,{"error":"不存在"})
         name,mime=files[path]

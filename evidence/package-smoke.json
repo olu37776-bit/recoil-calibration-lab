@@ -1,14 +1,14 @@
 {
-  "version": "0.3.0",
-  "wheel": "recoil_calibration_lab-0.3.0-py3-none-any.whl",
-  "sha256": "7303a0f215a500cbb3288c871b27e8c2215769443f121b54511a31a4aef53c15",
+  "version": "0.4.0",
   "status": "PASS",
+  "wheel": "recoil_calibration_lab-0.4.0-py3-none-any.whl",
+  "sha256": "c66c40ebf2791332c2c38521b8f1e17d4c5e8ed61829ec10a7ea8094622301f8",
   "checks": [
-    "wheel built with --no-deps --no-build-isolation",
-    "wheel installed into isolated target directory",
-    "CLI synthetic demo passed via installed wheel from outside source tree",
-    "all five web assets exist in installed package",
-    "installed state demo reports EMPTY and uses recording-only output"
+    "wheel built without downloading dependencies",
+    "installed into separate target directory",
+    "CLI synthetic demo from installed wheel outside source tree",
+    "new adaptive HTML/JS included",
+    "existing empty-state recording-only demo works"
   ],
   "dependency_environment": "existing Linux Python dependencies, not a clean environment",
   "windows_tested": false,

@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -m pip install -e ".[test,video,ui]"
-      - run: python -m pytest -q --junitxml=runs/junit.xml --cov=recoil_lab --cov-report=term-missing --cov-report=json:runs/coverage.json
+      - run: python -m pytest -vv --junitxml=runs/junit.xml --cov=recoil_lab --cov-report=term-missing --cov-report=json:runs/coverage.json
       - run: python -m recoil_lab demo --out runs/demo
       - uses: actions/upload-artifact@v4
         if: always()
