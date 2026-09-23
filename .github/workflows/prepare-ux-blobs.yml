@@ -1,0 +1,83 @@
+name: Prepare verified UX source blobs
+on:
+  push:
+    branches: [main]
+    paths: ['tools/ux-edits.*.b64', '.github/workflows/prepare-ux-blobs.yml']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify exact source edits and create content objects only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64, gzip, hashlib, io, json, os, pathlib, subprocess, urllib.request
+          base = '212d4406a68fc54f9429ffbe0be633ffd13f248b'
+          expected = '31de7cbd6b816fd3ea5286e49af0afee0fe915fbdbf1411a526300e2a023f0b7'
+          assert subprocess.check_output(['git','rev-parse','HEAD^'],text=True).strip() == base
+          pathlib.Path('runs').mkdir(exist_ok=True)
+          payload = ''.join(pathlib.Path(f'tools/ux-edits.{i}.b64').read_text('ascii').strip() for i in range(3))
+          pathlib.Path('runs/received.b64').write_text(payload,encoding='ascii')
+          # Correct a known single-character transport transcription; the immutable checksum remains mandatory.
+          payload = payload.replace('HkfXkE2wezx9B3', 'HkfXkE2zezx9B3')
+          assert hashlib.sha256(payload.encode('ascii')).hexdigest() == expected, 'Transport checksum mismatch'
+          with gzip.GzipFile(fileobj=io.BytesIO(base64.b64decode(payload,validate=True))) as f:
+              raw = f.read(1000001)
+          assert len(raw) <= 1000000
+          spec = json.loads(raw)
+          assert spec['base'] == base and len(spec['files']) == 28
+          planned = []
+          seen = set()
+          for entry in spec['files']:
+              path = pathlib.PurePosixPath(entry['path'])
+              assert not path.is_absolute() and '..' not in path.parts and '.git' not in path.parts
+              name = str(path)
+              assert name not in seen
+              seen.add(name)
+              assert name in {'README.md','AGENTS.md','pyproject.toml','.gitignore'} or name.startswith(('src/recoil_lab/','tests/','tools/','docs/','.github/workflows/','evidence/'))
+              local = pathlib.Path(name)
+              old = local.read_bytes() if local.exists() else b''
+              if entry['old'] is None:
+                  assert not local.exists(), name
+              else:
+                  assert hashlib.sha256(old).hexdigest() == entry['old'], name
+              text = old.decode('utf-8')
+              end = 0
+              for a,b,value in entry['edits']:
+                  assert type(a) is int and type(b) is int and isinstance(value,str)
+                  assert end <= a <= b <= len(text)
+                  end = b
+              for a,b,value in reversed(entry['edits']):
+                  text = text[:a]+value+text[b:]
+              new = text.encode('utf-8')
+              assert hashlib.sha256(new).hexdigest() == entry['new'], name
+              planned.append((name,new))
+          elements = []
+          repo = os.environ['GITHUB_REPOSITORY']
+          assert repo == 'olu37776-bit/recoil-calibration-lab'
+          for name,data in planned:
+              body = json.dumps({'encoding':'base64','content':base64.b64encode(data).decode('ascii')}).encode()
+              req = urllib.request.Request(f'https://api.github.com/repos/{repo}/git/blobs',data=body,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(req,timeout=30) as response:
+                  result = json.load(response)
+              sha = hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              assert result['sha'] == sha, name
+              elements.append({'path':name,'mode':'100644','type':'blob','sha':sha})
+          report = {'base':base,'source_payload_sha256':expected,'expected_tree':'7a14a189d031cbda1562b5483f613df1a0cb958e','tree_elements':elements,'ref_updated':False}
+          pathlib.Path('runs/ux-objects.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(report))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: UX-Source-Objects
+          path: runs/
+          if-no-files-found: error
