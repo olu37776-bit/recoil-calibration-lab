@@ -1,3 +1,14 @@
+# 当前分支：Simple 1.4 RC1
+
+基线Simple 1.3：a552fe662435a559bbe8a23865d6b413bf9b3a06。只更新feature/simple-manual-20260923；main V0.8不合并、不改写。
+用户确认：自己设置单个启停键，按一次开/关；取消5秒等待和持续按住F7；调好后进入日常使用；无效果需要输入诊断而非继续盲目加力度。
+本次独立单键模式明确改变旧监督入口的启停/R换弹/120秒限制，完整边界见SIMPLE_14_PLAN.md与SIMPLE_MODE.md。不得再用旧模式说明新入口。
+
+验证状态以本轮源码清单与新HEAD的Windows/Linux/原生/冻结EXE结果为准。无游戏和实体鼠标验收；Windows事件接收计数不等于游戏效果。
+
+---
+以下为main V0.8历史基线：
+
 # CURRENT · V0.8.0-rc1
 
 基线 main：3d5625a7b77a47f17dc4302e72b594b546e9a3c8。仓库 olu37776-bit/recoil-calibration-lab。

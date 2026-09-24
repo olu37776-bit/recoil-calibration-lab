@@ -10,7 +10,7 @@ import tempfile
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from .simple_core import VERSION, LABELS, Setting, Store, impact_summary
-from .simple_quick import QuickRunner as Runner
+from .simple_toggle import ToggleRunner as Runner
 from .simple_quick_ui import QuickControls
 from .simple_desktop import Desktop
 from .simple_tuning import (EditHistory, Preferences, read_setting, write_setting,
@@ -53,6 +53,8 @@ class Application:
         self.history=EditHistory(self.setting())
         self.silent=False;self.refresh_saved();self.refresh_edit_state()
         self.quick=QuickControls(self)
+        from .simple_daily_ui import DailyControls
+        self.daily=DailyControls(self,self.guide.pages[0].master)
         self.timer=root.after(80,self.pulse)
         last_key=self.preferences.read()
         saved_settings=dict(self.store.items())
@@ -64,7 +66,7 @@ class Application:
                 self.status.set('已恢复上次保存的配装；输出关闭，请重新选择窗口并确认。')
             except ValueError as exc:self.error(exc)
         elif self.preferences.warning:self.status.set(self.preferences.warning)
-        self.guide.refresh()
+        self.guide.show(4 if last_key in saved_settings else 0,stop=False)
 
     def combo(self,parent,key,label,values,row,col,editable=False):
         ttk.Label(parent,text=label,width=8).grid(row=row,column=col,sticky='w',pady=4)
@@ -233,13 +235,14 @@ class Application:
             self.status.set('请选择测试窗口；不用手填显示器或游戏分辨率')
         except ValueError as e:self.error(e)
     def select_window(self,event=None):
-        self.stop();i=self.window_combo.current();self.target=self.window_values[i][1] if i>=0 else None;self.status.set('目标已选好；开始后5秒内切回该窗口')
+        self.stop();i=self.window_combo.current();self.target=self.window_values[i][1] if i>=0 else None;self.status.set('窗口已选好；点准备完成，然后切回目标窗口按启停键')
     def consent_changed(self):
         if not self.consent.get():self.stop()
     def start(self):
         if self.pending_numeric() and not self.set_numeric():return
         try:
             self.quick.prepare()
+            self.runner.set_options(None if self.daily.legacy.get() else self.daily.current_options())
             self.runner.start(self.setting(),self.target,self.consent.get());self.status.set(self.runner.message)
         except (ValueError,OSError) as e:self.error(e)
     def stop(self):
@@ -251,6 +254,7 @@ class Application:
         message=self.runner.pulse()
         if self.runner.active or getattr(self,'was_active',False):self.status.set(message)
         self.was_active=self.runner.active
+        self.daily.refresh()
         self.guide.refresh()
         self.timer=self.root.after(80,self.pulse)
     def error(self,e):self.runner.stop();self.status.set(str(e))
@@ -377,6 +381,8 @@ def main():
         quick_test(args.self_test)
         from .simple_guide_ui import self_test as guide_test
         guide_test(args.self_test)
+        from .simple_daily_selftest import self_test as daily_test
+        daily_test(args.self_test)
         return
     try:
         if platform.system()=='Windows':Desktop()

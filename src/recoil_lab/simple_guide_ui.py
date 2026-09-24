@@ -34,8 +34,9 @@ class GuideView:
         root.geometry(f'{min(960, root.winfo_screenwidth()-70)}x{min(750, root.winfo_screenheight()-80)}')
         root.minsize(780, 550)
         header = ttk.Frame(root, padding=(18, 12, 18, 7)); header.pack(fill='x')
-        ttk.Label(header, text='RecoilLab  /  跟着这 4 步走', style='Title.Guide.TLabel').pack(anchor='w')
+        ttk.Label(header, text='RecoilLab  /  调好后，一键开关', style='Title.Guide.TLabel').pack(anchor='w')
         ttk.Label(header, text='手动试调版：不录屏，不填DPI，不自动识别枪械。', style='Muted.Guide.TLabel').pack(anchor='w', pady=(3, 7))
+        ttk.Button(header, text='已调好：进入日常使用', command=lambda:self.show(4)).pack(anchor='e')
         steps = ttk.Frame(header); steps.pack(fill='x')
         self.step_buttons = []
         for index, title in enumerate(STAGES):
@@ -115,7 +116,7 @@ class GuideView:
     def _prepare(self, page, font):
         app = self.app
         self.text(page, '② 先准备好，再开始', title=True)
-        self.text(page, '1  打开允许测试的场景，固定配装和姿态，对准墙面。\n2  回到这里，刷新列表并选择游戏窗口。\n3  确认后点底部蓝色按钮，5秒内切回游戏。')
+        self.text(page, '1  打开允许测试的场景，固定配装和姿态，对准墙面。\n2  回到这里，刷新列表并选择游戏窗口。\n3  确认后点底部蓝色按钮，切回游戏按一下启停键。')
         row = ttk.Frame(page); row.pack(fill='x', pady=8)
         app.window_combo = ttk.Combobox(row, textvariable=app.window, state='readonly', width=40)
         app.window_combo.pack(side='left', fill='x', expand=True); app.window_combo.bind('<<ComboboxSelected>>', app.select_window)
@@ -125,7 +126,7 @@ class GuideView:
         self.text(page, variable=self.start_error)
         self.text(page, variable=self.summary)
         self.text(page, '首次保留力度20、每轮2秒即可。这只是试调起点，不是准确预设。', muted=True)
-        self.text(page, '切回后要同时按住：F7（允许下拉）＋ 鼠标右键（开镜）＋ 左键（开火）。\n只按一下F7不会持续生效。松手即停；弹打完也要松开。')
+        self.text(page, '默认F9：按一下开启，再按一下关闭。开启后正常开镜、开火，不必按住F7。\n要改启停键/使用切换式开镜？点顶部“进入日常使用”。')
 
     def _test(self, page, font):
         app = self.app
@@ -135,8 +136,8 @@ class GuideView:
         self.text(status, variable=self.live_title, title=True)
         self.text(status, variable=self.live_action)
         self.instructions = ttk.Frame(page); self.instructions.pack(fill='x', pady=5)
-        self.text(self.instructions, '按键顺序：先全部松开 → 按住F7 → 按住右键 → 按住左键。\n试射时三个键都保持按住；试完松手，切回这里。')
-        self.text(self.instructions, 'F8 / Esc 随时停止。换弹、切枪或切出窗口后，需要重新点开始。', muted=True)
+        self.text(self.instructions, '按键顺序：切回目标窗口 → 按一下启停键（默认F9）→ 松开 → 正常开镜、开火。\n默认要同时按住左右键；只按一次开镜的用户可在日常页改“仅左键”。')
+        self.text(self.instructions, 'F8 / Esc 关闭。换弹只暂停；切出窗口后关闭开关，回游戏再按启停键。', muted=True)
         row = ttk.Frame(self.instructions); row.pack(fill='x', pady=6)
         self.finish_button = ttk.Button(row, text='我已试射，看效果', command=self.finish); self.finish_button.pack(side='left')
         ttk.Button(row, text='还没试射：回到准备', command=lambda: self.show(1)).pack(side='left', padx=8)
@@ -175,7 +176,9 @@ class GuideView:
         self.text(raw, variable=app.status, muted=True)
         ttk.Button(raw, text='手动标注弹着截图（可选）', command=app.open_feedback).pack(anchor='w')
         self.troubleshooting = ttk.Frame(page)
-        for line in NO_EFFECT: self.text(self.troubleshooting, '• '+line)
+        for line in ('先确认已经点过准备；到所选游戏窗口按一下启停键（默认F9）。', '默认必须按住右键和左键；切换式开镜请在日常页选择仅左键。', '点日常页“只检测按键”检查哪些键被识别；这不会移动鼠标。', 'Windows接收次数为0时先排查启停、按键和系统错误；有接收记录却无效果可能是游戏未接收，不要盲目加力度。'):
+            self.text(self.troubleshooting, '• '+line)
+        ttk.Button(self.troubleshooting,text='进入日常使用 / 输入诊断',command=lambda:self.show(4)).pack(anchor='w')
 
     def _save(self, page, font):
         app = self.app
@@ -184,7 +187,7 @@ class GuideView:
         self.text(page, variable=self.summary, title=True)
         self.text(page, variable=app.condition_text, muted=True)
         self.text(page, variable=app.dirty_text)
-        self.text(page, '点底部“保存这套”保存在本机。下次打开会恢复参数，\n但仍要选择游戏窗口、确认并开始，不会自动运行。')
+        self.text(page, '点底部“保存并进入日常使用”。下次打开会恢复参数，\n点“进入日常使用”，选窗口并设置自己的启停键，不再重复调教。')
         row = ttk.Frame(page); row.pack(fill='x', pady=12)
         ttk.Button(row, text='导出一份备份', command=app.export_current).pack(side='left')
         ttk.Button(row, text='恢复以前的保存值', command=app.undo).pack(side='left', padx=8)
@@ -199,13 +202,16 @@ class GuideView:
                                  consent=app.consent.get(), rate=rate)
 
     def show(self, stage, *, stop=True):
-        if not 0 <= stage < len(STAGES): raise ValueError('Invalid guide stage')
+        if not 0 <= stage <= len(STAGES): raise ValueError('Invalid guide stage')
         if stop: self.app.stop()
         self.stage = stage
         for i, page in enumerate(self.pages):
             if i == stage: page.pack(fill='both', expand=True)
             else: page.pack_forget()
             self.step_buttons[i].configure(style='Selected.Step.TButton' if i == stage else 'Step.TButton')
+        if hasattr(self.app,'daily'):
+            if stage==4:self.app.daily.frame.pack(fill='both',expand=True)
+            else:self.app.daily.frame.pack_forget()
         self.app.scroll.yview_moveto(0)
         self.refresh()
 
@@ -226,20 +232,27 @@ class GuideView:
             try: app.setting()
             except (ValueError, tk.TclError): hint = '请先把本次实际配装选完整，再继续。'
         elif self.stage == 1:
-            caption, hint = '开始5秒倒计时', issue or '准备好了。点开始后，请在5秒内切回刚选的游戏窗口。'
+            caption, hint = '准备完成：去游戏按启停键', issue or '没有倒计时。准备后到所选游戏窗口，按一下启停键开启。'
         elif self.stage == 2:
             if self.outcome: caption = f'用力度 {app.amount.get()} 再试一次'
             else: caption = '我已试射，看效果'
             hint = '调整不会自动开始。每次试射仍需主动点开始。' if self.outcome else '试完全部松手，切回本程序，再点“我已试射，看效果”。'
-        else:
-            caption = '再试一次：回到准备' if self.saved_here and not app.has_edits else '保存这套'
+        elif self.stage == 3:
+            caption = '进入日常使用' if self.saved_here and not app.has_edits else '保存并进入日常使用'
             hint = '保存在本机；备份和更多操作不是必做项。'
             if app.has_edits: self.saved_title.set('当前有未保存参数，满意后请点“保存这套”。')
-            elif self.saved_here: self.saved_title.set('已保存在本机。现在可以关闭程序，参数不会丢。')
+            elif self.saved_here: self.saved_title.set('已保存在本机。下一步：点“进入日常使用”，设置启停键。')
             else: self.saved_title.set('当前参数已有保存记录；下次可直接载入。')
-        app.start_button.configure(text=caption, state='disabled' if self.stage == 1 and issue else 'normal')
+        else:
+            key=app.daily.key.get()
+            caption, hint = f'准备完成：去游戏按 {key}', issue or f'{key}按一次开/关；不用按住F7。F8/Esc关闭。'
+            if app.runner.active: caption, hint = f'正在监听：回游戏按 {key}', '开启后仅在目标窗口响应。要修改参数，先点立即停止。'
+            app.daily.refresh()
+        app.start_button.configure(text=caption, state='disabled' if (self.stage in (1,4) and issue) or (self.stage==4 and app.runner.active) else 'normal')
         self.hint.set(hint)
         notice = run_notice(app.status.get(), app.runner.active)
+        if app.runner.options is not None:
+            notice = Notice(app.status.get(),f'启停键：{app.daily.key.get()}（按一下，不用按住）。输入接收计数见日常页；F8/Esc关闭。', 'warning' if app.runner.snapshot()['reason']=='ERROR' else 'info')
         if self.stage == 2 and self.outcome and not app.runner.active and notice.kind != 'warning':
             notice = Notice('已停止：现在按你的观察调整', '不用按F7。选择下方结果；调整后点底部蓝色按钮再试，合适就保存。')
         if notice != self._last_notice:
@@ -255,11 +268,14 @@ class GuideView:
             if self.issue(): self.show(1); return
             self.begin()
         elif self.stage == 2: self.finish()
-        elif self.saved_here and not app.has_edits: self.show(1)
+        elif self.stage==4:
+            if self.issue(): return
+            app.start();self.refresh()
+        elif self.saved_here and not app.has_edits: self.show(4)
         elif app.save():
             self.saved_here = True
-            self.saved_title.set('已保存在本机。现在可以关闭程序，参数不会丢。')
-            self.refresh()
+            self.saved_title.set('已保存在本机。已进入日常使用；请准备并按启停键。')
+            self.show(4)
 
     def begin(self):
         self.start_error.set('')
@@ -311,6 +327,7 @@ def self_test(out):
     with tempfile.TemporaryDirectory() as directory:
         root = tk.Tk(); app = Application(root, directory); root.update()
         try:
+            app.daily.legacy.set(True)
             g = app.guide
             assert g.stage == 0 and not app.runner.active and not app.consent.get()
             assert g.pages[0].winfo_ismapped() and sum(p.winfo_ismapped() for p in g.pages) == 1
@@ -367,7 +384,8 @@ def self_test(out):
             assert g.saved_here and not app.has_edits and len(app.store.items()) == 1
             assert '已保存在本机' in g.saved_title.get() and not app.runner.active
             checks.append('guide_save_receipt_without_permission')
-            g.primary(); assert g.stage == 1 and len(calls) == 1
+            assert g.stage == 4 and len(calls) == 1
+            g.show(1)
             checks.append('guide_saved_next_step_does_not_start')
             app.numeric.set('not-a-number'); g.refresh()
             assert str(app.start_button.cget('state')) == 'disabled' and '数值' in g.hint.get()
@@ -404,7 +422,7 @@ def self_test(out):
                                     root.winfo_rootx()+root.winfo_width(), root.winfo_rooty()+root.winfo_height())).save(str(Path(shot).with_name('guide-feedback.png')))
             app.close(force=True)
             root = tk.Tk(); app = Application(root, directory); root.update()
-            assert app.guide.stage == 0 and app.target is None and not app.consent.get() and not app.runner.active
+            assert app.guide.stage == 4 and app.target is None and not app.consent.get() and not app.runner.active
             assert app.rate.get() == before
             checks.append('guide_restart_keeps_parameter_not_authorization')
         except Exception:

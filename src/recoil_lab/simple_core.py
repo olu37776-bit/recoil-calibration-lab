@@ -10,7 +10,7 @@ import os
 import threading
 import time
 
-VERSION = '1.3.0-rc1'
+VERSION = '1.4.0-rc1'
 SOURCE = 'manual-user-v1'
 LABELS = ('weapon','sight','muzzle','underbarrel','magazine','ammo','pose','weight','notes')
 

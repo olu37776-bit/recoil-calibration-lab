@@ -64,6 +64,7 @@ jobs:
             runs/simple-windows.png
             runs/guide-prepare.png
             runs/guide-feedback.png
+            runs/daily-toggle.png
           if-no-files-found: error
   publish:
     needs: [verify, build]
@@ -85,4 +86,4 @@ jobs:
           (cd release/dist && sha256sum -c RecoilLab-Simple.exe.sha256)
           VERSION=$(python -c "import sys; sys.path.insert(0, 'src'); from recoil_lab.simple_core import VERSION; print(VERSION)")
           TAG="simple-v${VERSION}-${GITHUB_SHA:0:7}"
-          gh release create "$TAG" release/dist/RecoilLab-Simple.exe release/dist/RecoilLab-Simple.exe.sha256 release/dist/RecoilLab-Simple-source.zip --target "$GITHUB_SHA" --prerelease --title "RecoilLab 简易手动调教版 $TAG" --notes "Native single-file four-step guided manual tuning: loadout, preparation, trial feedback and save. Includes plain-language stop/recovery hints and a no-effect checklist. Existing manual output controls are unchanged. No live capture, DPI entry, automatic weapon recognition or breathing removal. Explicitly supervised input only. Native and frozen UI checks passed; physical mouse and game acceptance NOT verified. Old V0.8 workflow is unchanged."
+          gh release create "$TAG" release/dist/RecoilLab-Simple.exe release/dist/RecoilLab-Simple.exe.sha256 release/dist/RecoilLab-Simple-source.zip --target "$GITHUB_SHA" --prerelease --title "RecoilLab 简易手动调教版 $TAG" --notes "Configurable one-press toggle and daily-use mode after saving. No five-second countdown or held F7 required. Shows key state and Windows-accepted input counts, not game acceptance. R pauses a burst; focus or loadout-change commands disable the switch. Legacy hold engine remains separate. No live capture, DPI entry, automatic weapon recognition or breathing removal. Explicitly supervised input only. Native and frozen UI checks passed; physical mouse and game acceptance NOT verified. Old V0.8 workflow is unchanged."

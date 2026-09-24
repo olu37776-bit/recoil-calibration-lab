@@ -32,7 +32,7 @@ class QuickControls:
 
     def update_hint(self):
         if self.enabled.get():
-            self.hint.set(f'全部松手后：F5 −{self.app.step.get()} / F6 ＋{self.app.step.get()}；'
+            self.hint.set(f'松开鼠标左右键后：F5 −{self.app.step.get()} / F6 ＋{self.app.step.get()}；'
                           '按住不连调，开火时不改。F8 / Esc 停止。')
         else:
             self.hint.set('快捷调节关闭；使用原来的按钮调节。按键与游戏冲突时保持关闭。')
