@@ -94,7 +94,7 @@ def test_closed_never_restarts():
     a.update(preset(),TARGET,ToggleOptions());assert not r.active
 
 
-@pytest.mark.parametrize('title',['WARDOGS - Steam','Wardogs Launcher','RecoilLab WARDOGS','WARDOGS screenshot','WARDOGS '])
+@pytest.mark.parametrize('title',['WARDOGS - Steam','Wardogs Launcher','RecoilLab WARDOGS','WARDOGS screenshot','WARDOGS game'])
 def test_default_target_match_is_not_a_substring(tmp_path,title):
     rule=TargetRule(tmp_path);assert rule.resolve([(title,TARGET)])[0] is None
 
@@ -108,7 +108,7 @@ def test_exact_rule_remembers_only_title_and_detects_ambiguity(tmp_path):
     reloaded.reset();assert reloaded.title=='' and not reloaded.path.exists()
 
 
-@pytest.mark.parametrize('title',['','x'*257,' abc','x\nY',23,None])
+@pytest.mark.parametrize('title',['','x'*257,'   ','x\nY',23,None])
 def test_bad_target_title(tmp_path,title):
     rule=TargetRule(tmp_path)
     with pytest.raises(ValueError):rule.save(title)
@@ -157,3 +157,61 @@ def test_draft_invalid_import_keeps_current(tmp_path):
     d=PanelDraft(Store(tmp_path),public_catalog());s=preset();d.load(s)
     with pytest.raises(ValueError):d.load(replace(s,conditions=dict(s.conditions,weapon='Unknown')))
     assert d.current.record()==s.record()
+
+
+@pytest.mark.parametrize('title', [
+    'WARDOGS', 'Wardogs', 'wardogs', 'WaRdOgS',
+    'Wardogs ', ' Wardogs', '\tWardogs\r\n', '\u00a0Wardogs\u3000', ' 战狗 ',
+])
+def test_real_caption_case_and_padding_find_and_persist(tmp_path, title):
+    rule = TargetRule(tmp_path)
+    assert rule.resolve([(title, TARGET)])[0] == TARGET
+    rule.save(title)
+    assert json.loads(rule.path.read_text(encoding='utf-8')) == {'title': title}
+    loaded = TargetRule(tmp_path)
+    assert not loaded.warning
+    assert loaded.resolve([(title, TARGET)])[0] == TARGET
+    assert loaded.resolve([(title.strip().swapcase(), TARGET)])[0] == TARGET
+
+
+@pytest.mark.parametrize('title', ['', ' ', '\t\n', '\x00Wardogs', 'War\ndogs', 'War\tdogs', 7, None])
+def test_invalid_enumerated_caption_never_matches(tmp_path, title):
+    rule = TargetRule(tmp_path)
+    assert rule.resolve([(title, TARGET)])[0] is None
+    with pytest.raises(ValueError):
+        rule.save(title)
+
+
+def test_normalized_caption_collisions_never_pick_first(tmp_path):
+    rule = TargetRule(tmp_path)
+    windows = [('Wardogs', TARGET), (' WARDOGS\t', dict(TARGET, handle=43))]
+    for save in (False, True):
+        if save:
+            rule.save(' Wardogs ')
+        target, reason = rule.resolve(windows)
+        assert target is None and '多个同名窗口' in reason
+
+
+def test_selected_raw_caption_does_not_match_launcher_or_substring(tmp_path):
+    rule = TargetRule(tmp_path)
+    rule.save(' Wardogs ')
+    for title in ('Wardogs Launcher', 'RecoilLab Wardogs', 'Wardogs - Steam', 'War dogs'):
+        assert rule.resolve([(title, TARGET)])[0] is None
+
+
+def test_padded_caption_cannot_bypass_target_validation(tmp_path):
+    rule = TargetRule(tmp_path)
+    for invalid in (dict(TARGET, pid=0), dict(TARGET, handle=True),
+                    dict(TARGET, size=[0, 0]), dict(TARGET, enabled=True)):
+        assert rule.resolve([(' Wardogs ', invalid)])[0] is None
+
+
+def test_caption_resolution_never_restores_activation(tmp_path):
+    rule = TargetRule(tmp_path)
+    rule.save(' Wardogs ')
+    target, _ = TargetRule(tmp_path).resolve([('wardogs', TARGET)])
+    runner = StubRunner()
+    ready = AutoReady(runner)
+    ready.update(preset(), target, ToggleOptions())
+    assert runner.active and not runner.snapshot()['enabled']
+    assert not runner.backend.events

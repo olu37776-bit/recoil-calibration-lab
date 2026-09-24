@@ -13,14 +13,28 @@ from .simple_tuning import EditHistory, _json, validate_catalog_setting
 DEFAULT_TITLES = ('WARDOGS', '战狗')
 
 
+def title_key(title):
+    """Full-title identity, ignoring only exterior whitespace and letter case.
+
+    Win32 returns raw captions, including harmless padding. Do not reject an
+    enumerated window merely because its caption has such padding, and do not
+    confuse Wardogs with a different application. No substring/fuzzy matching.
+    Embedded control characters, empty and unbounded titles remain invalid.
+    """
+    if not isinstance(title, str) or not 0 < len(title) <= 256:
+        return None
+    text = title.strip()
+    if not text or any(ord(c) < 32 for c in text):
+        return None
+    return text.casefold()
+
+
 def title_valid(title):
-    return (isinstance(title, str) and 0 < len(title) <= 256
-            and not any(ord(c) < 32 for c in title)
-            and title == title.strip())
+    return title_key(title) is not None
 
 
 class TargetRule:
-    """Remember only an exact title. Never reuse a handle or persisted PID."""
+    """Persist a raw title only; compare full normalized titles, never a PID."""
     def __init__(self, directory):
         self.path = Path(directory) / 'panel-target.json'
         self.title = ''
@@ -37,7 +51,7 @@ class TargetRule:
 
     def save(self, title):
         if not title_valid(title):
-            raise ValueError('窗口名称无效')
+            raise ValueError('窗口名称无效：须为1～256字，不能只有空白或含内部控制字符')
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_suffix('.tmp')
         tmp.write_text(json.dumps({'title': title}, ensure_ascii=False), encoding='utf-8')
@@ -50,12 +64,13 @@ class TargetRule:
         self.title = ''
 
     def resolve(self, windows):
-        allowed = (self.title,) if self.title else DEFAULT_TITLES
-        candidates = [(title, info) for title, info in windows if title in allowed]
+        allowed = {title_key(t) for t in ((self.title,) if self.title else DEFAULT_TITLES)}
+        candidates = [(title, info) for title, info in windows
+                      if title_key(title) is not None and title_key(title) in allowed]
         if not candidates:
             return None, '未找到游戏窗口；先打开游戏，或在“键位与窗口”中选择一次。'
         if len(candidates) != 1:
-            return None, '找到多个同名窗口，暂不启用；请关闭重复窗口后再试。'
+            return None, '找到多个同名窗口（忽略大小写和首尾空白），暂不启用；请关闭重复窗口后再试。'
         title, info = candidates[0]
         if (not isinstance(info, dict) or set(info) != {'handle', 'pid', 'size'}
                 or any(type(info.get(k)) is not int or info[k] <= 0 for k in ('handle', 'pid'))

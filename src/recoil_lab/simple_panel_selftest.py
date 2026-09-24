@@ -95,7 +95,7 @@ def self_test(out):
             app.show_home();app.pulse_once()
             runner.activate();app.disable();assert not runner.controller.enabled and runner.active
             checks.append('panel_off_keeps_listener_ready_for_one_key')
-            app.windows_provider=lambda:[('WARDOGS',TARGET),('WARDOGS',dict(TARGET,handle=43))]
+            app.windows_provider=lambda:[('WARDOGS',TARGET),(' Wardogs\t',dict(TARGET,handle=43))]
             app.next_scan=0;app.pulse_once();assert app.target is None and not runner.active
             checks.append('panel_ambiguous_window_no_output')
             app.windows_provider=lambda:[('WARDOGS',TARGET)];app.next_scan=0;app.pulse_once()
@@ -108,6 +108,48 @@ def self_test(out):
                     assert button.winfo_rooty()+button.winfo_height()<=root.winfo_rooty()+root.winfo_height()
                 assert app.pages[mode].winfo_ismapped() and not app.pages['config' if mode=='home' else 'home'].winfo_ismapped()
             checks.append('panel_only_two_pages_footer_visible_760x560')
+            # Drive the actual settings combobox using a raw Win32-style
+            # padded caption, not only the model or a direct choose_window call.
+            raw_title = ' \tWardogs\u00a0 '
+            app.windows_provider=lambda:[(raw_title,TARGET)]
+            app.rules.reset();app.next_scan=0;app.disable();app.pulse_once()
+            assert app.target==TARGET and runner.active and not runner.controller.enabled
+            checks.append('panel_case_padded_caption_auto_ready_off')
+            sent_before=len(runner.backend.events)
+            app.open_settings();root.update()
+            settings=next(w for w in root.winfo_children() if isinstance(w,tk.Toplevel))
+            def descendants(widget):
+                for child in widget.winfo_children():
+                    yield child
+                    yield from descendants(child)
+            boxes=[w for w in descendants(settings) if w.winfo_class()=='TCombobox'
+                   and str(w.cget('textvariable'))==str(app.window)]
+            assert len(boxes)==1
+            boxes[0].current(0);boxes[0].event_generate('<<ComboboxSelected>>')
+            root.update();app.pulse_once()
+            assert app.rules.title==raw_title and app.target==TARGET
+            assert '已记住' in app.notice.get() and '等待游戏窗口' not in app.state.get()
+            assert json.loads(app.rules.path.read_text(encoding='utf-8'))=={'title':raw_title}
+            assert not runner.controller.enabled and len(runner.backend.events)==sent_before
+            checks.append('panel_padded_caption_combobox_selection_succeeds_without_output')
+            settings.destroy()
+            if os.name=='nt':
+                # Exercise real Win32 enumeration against a private test window.
+                # This path never starts a runner or calls SendInput.
+                from .simple_toggle_desktop import ToggleDesktop
+                from .simple_panel_model import TargetRule
+                probe=tk.Toplevel(root);probe.title(' RecoilLab title probe ')
+                probe.geometry('320x180');root.update()
+                try:
+                    windows=ToggleDesktop().windows()
+                    probe_rule=TargetRule(Path(directory)/'title-probe')
+                    probe_rule.save(' RecoilLab title probe ')
+                    probe_target,probe_title=probe_rule.resolve(windows)
+                    assert probe_target is not None and probe_title==' RecoilLab title probe '
+                    assert probe_target['pid']==os.getpid()
+                    checks.append('panel_real_win32_padded_caption_enumeration')
+                finally:
+                    probe.destroy()
             if os.environ.get('SIMPLE_SCREENSHOT'):
                 from PIL import ImageGrab
                 folder=Path(os.environ['SIMPLE_SCREENSHOT']).parent
@@ -117,12 +159,14 @@ def self_test(out):
                     app._show(mode);app.pulse_once();root.update()
                     ImageGrab.grab(bbox=(root.winfo_rootx(),root.winfo_rooty(),root.winfo_rootx()+root.winfo_width(),root.winfo_rooty()+root.winfo_height())).save(str(folder/name))
             app.close(force=True)
-            root=tk.Tk();runner=TestRunner();app=PanelApplication(root,directory,runner=runner,windows_provider=lambda:[('WARDOGS',TARGET)])
+            root=tk.Tk();runner=TestRunner();app=PanelApplication(root,directory,runner=runner,windows_provider=lambda:[(raw_title,TARGET)])
             root.update();app.pulse_once()
             assert app.mode=='home' and runner.active and not runner.controller.enabled
             assert app.key.get()=='鼠标侧键4' and not app.diagnostic.get()
             assert app.selected() and app.selected().conditions['notes']=='第二套'
             checks.append('panel_restart_restores_selection_auto_ready_but_off')
+            assert app.rules.title==raw_title and app.target==TARGET
+            checks.append('panel_restart_padded_caption_rule_remains_off')
             assert not any(k in app.option_store.path.read_text(encoding='utf-8') for k in ('enabled','consent','handle','pid'))
             checks.append('panel_no_runtime_permission_in_preferences')
         except Exception:
