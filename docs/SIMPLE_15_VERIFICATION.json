@@ -1,0 +1,32 @@
+{
+  "base_commit": "0930d7ab893599a4df0f8f542531986a075a5e0f",
+  "version": "1.5.0-rc1",
+  "default_entrypoint": "PanelApplication",
+  "local_regression": {
+    "tests": 657,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "local_native_gui": {
+    "checks": 75,
+    "status": "PASS"
+  },
+  "physical_input_tested": false,
+  "game_tested": false,
+  "remote_and_frozen_status": "MUST_RUN_ON_NEW_HEAD",
+  "source_sha256": {
+    "src/recoil_lab/simple_panel.py": "1d4980e3d7d57614cc0b65d7b0b26eb455553e663fad4bda1f7e5a23eee22de8",
+    "src/recoil_lab/simple_panel_model.py": "c38756e39c576185cc5c524475134f0528e5a1d420c206083521a20bfb808636",
+    "src/recoil_lab/simple_panel_selftest.py": "72d5b4481dd8269049e3587af2ad4ad8bb651e9baad5b0c3a0e50d7541ddaba7",
+    "tests/test_simple_panel.py": "9a634b1e317ab7a1dd75cfd8c084769c9ea938084752af07e04568f13d5d602f",
+    "src/recoil_lab/simple_app.py": "5a423e5584c4ce8aa8e6dfe17240c27442da7980e72415cc0825642b9ec8b87f",
+    "src/recoil_lab/simple_core.py": "fa655162fd6eae5f9d412e90ab4fe6cd30539a9213ba8cb0eb79f285eaf2f0fc",
+    "tools/build_simple.py": "7e97ead1b3994dc0370a4206b45d022c82041a11ceaa2740a385dd0a1f08b548",
+    ".github/workflows/simple.yml": "9642038ead2fa619a4492a952e3a1f7ed4eea4de05c48105a2893661033c2e0e",
+    "docs/CURRENT.md": "fecee2e95d239269a8684194268255524e1ae5216ebfdfa00c5c756241527d69",
+    "docs/SIMPLE_MODE.md": "e5390fb3ce0f2abd22987590d989f7726cdde4e5811823de91e16157c1cdaf05",
+    "docs/SIMPLE_15_PLAN.md": "b266910f5d508d2bd4473cd569c2f510f552c2cd1b8c0cd038247b9f700fcf0b"
+  },
+  "note": "Evidence file excluded from its own source digest manifest. New GUI self-test uses ToggleRunner with a fake, non-threaded backend. No user images or credentials included."
+}

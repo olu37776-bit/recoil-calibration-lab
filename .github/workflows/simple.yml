@@ -65,6 +65,8 @@ jobs:
             runs/guide-prepare.png
             runs/guide-feedback.png
             runs/daily-toggle.png
+            runs/panel-home.png
+            runs/panel-config.png
           if-no-files-found: error
   publish:
     needs: [verify, build]
@@ -86,4 +88,4 @@ jobs:
           (cd release/dist && sha256sum -c RecoilLab-Simple.exe.sha256)
           VERSION=$(python -c "import sys; sys.path.insert(0, 'src'); from recoil_lab.simple_core import VERSION; print(VERSION)")
           TAG="simple-v${VERSION}-${GITHUB_SHA:0:7}"
-          gh release create "$TAG" release/dist/RecoilLab-Simple.exe release/dist/RecoilLab-Simple.exe.sha256 release/dist/RecoilLab-Simple-source.zip --target "$GITHUB_SHA" --prerelease --title "RecoilLab 简易手动调教版 $TAG" --notes "Configurable one-press toggle and daily-use mode after saving. No five-second countdown or held F7 required. Shows key state and Windows-accepted input counts, not game acceptance. R pauses a burst; focus or loadout-change commands disable the switch. Legacy hold engine remains separate. No live capture, DPI entry, automatic weapon recognition or breathing removal. Explicitly supervised input only. Native and frozen UI checks passed; physical mouse and game acceptance NOT verified. Old V0.8 workflow is unchanged."
+          gh release create "$TAG" release/dist/RecoilLab-Simple.exe release/dist/RecoilLab-Simple.exe.sha256 release/dist/RecoilLab-Simple-source.zip --target "$GITHUB_SHA" --prerelease --title "RecoilLab 简易手动调教版 $TAG" --notes "Two-page manual tool: home selects presets, configuration page includes tuning. Both use the same one-press hotkey. No prepare button or countdown; exact-title target discovery starts an OFF listener, never input. New installs default explicitly to left-button trigger. Draft tuning, save/copy/undo and Windows-input diagnostics. Native/frozen tests include the actual PanelApplication entrypoint. Game acceptance and physical hardware remain unverified. Main V0.8 unchanged."

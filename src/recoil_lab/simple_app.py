@@ -383,10 +383,13 @@ def main():
         guide_test(args.self_test)
         from .simple_daily_selftest import self_test as daily_test
         daily_test(args.self_test)
+        from .simple_panel_selftest import self_test as panel_test
+        panel_test(args.self_test)
         return
     try:
         if platform.system()=='Windows':Desktop()
-        root=tk.Tk();Application(root);root.mainloop()
+        from .simple_panel import PanelApplication
+        root=tk.Tk();PanelApplication(root);root.mainloop()
     except Exception as e:
         try:messagebox.showerror('RecoilLab 启动失败',str(e)+'\n未启用任何输入。')
         except Exception:pass

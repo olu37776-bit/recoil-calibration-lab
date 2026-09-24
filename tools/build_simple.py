@@ -24,8 +24,8 @@ def main():
     app=ROOT/'dist/RecoilLab-Simple.exe'
     subprocess.run([str(app),'--self-test',str(report)],env=env,check=True,timeout=45)
     result=json.loads(report.read_text(encoding='utf-8'))
-    if (result['status']!='PASS' or result['version']!=VERSION or
-        not {'quick_restart_keeps_settings_not_permission','guide_restart_keeps_parameter_not_authorization', 'guide_failed_start_visible_in_prepare', 'guide_footer_visible_all_steps_820x580', 'daily_restart_recovers_preferences_not_permission', 'prepare_listens_without_five_seconds_or_output'}.issubset(result.get('checks',[]))):raise RuntimeError('Frozen UI self-test/version failed')
+    if (result['status']!='PASS' or result['version']!=VERSION or result.get('default_entrypoint')!='PanelApplication' or
+        not {'quick_restart_keeps_settings_not_permission','guide_restart_keeps_parameter_not_authorization', 'guide_failed_start_visible_in_prepare', 'guide_footer_visible_all_steps_820x580', 'daily_restart_recovers_preferences_not_permission', 'prepare_listens_without_five_seconds_or_output', 'panel_auto_ready_no_prepare_no_checkbox', 'panel_home_and_config_identical_single_key', 'panel_restart_restores_selection_auto_ready_but_off'}.issubset(result.get('checks',[]))):raise RuntimeError('Frozen UI self-test/version failed')
     digest=hashlib.sha256(app.read_bytes()).hexdigest()
     (ROOT/'dist/RecoilLab-Simple.exe.sha256').write_text(digest+'  '+app.name+'\n',encoding='ascii')
     print(json.dumps({'sha256':digest,'version':VERSION,'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'frozen_selftest':'PASS','physical_input_tested':False,'game_tested':False}))
