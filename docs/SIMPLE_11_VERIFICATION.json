@@ -1,0 +1,56 @@
+{
+  "base_commit": "940c2f3f8ddcb5deb75efed09bed340432397d2c",
+  "version": "1.1.0-rc1",
+  "scope": "local_tests_and_native_Tk_only",
+  "regression": {
+    "passed": 497,
+    "command": "python -m pytest -q tests --junitxml=runs/simple11-full-regression.xml"
+  },
+  "native": {
+    "status": "PASS",
+    "version": "1.1.0-rc1",
+    "physical_input_tested": false,
+    "game_tested": false,
+    "checks": [
+      "native_tk_window",
+      "manual_adjust",
+      "save",
+      "previous_value",
+      "weapon_compatibility",
+      "manual_weight",
+      "2560x1440_feedback",
+      "restart_without_permission",
+      "fine_step_1",
+      "undo_edit",
+      "manual_reference_restore",
+      "numeric_validation",
+      "portable_export_import",
+      "cancel_unsaved_discard",
+      "bad_import_preserves_draft",
+      "restore_last_saved_without_target",
+      "sticky_start_at_820x580",
+      "invalid_pending_number_blocks_save"
+    ]
+  },
+  "real_windows_build": "PENDING_REMOTE_HEAD_VERIFICATION",
+  "independent_review": false,
+  "physical_mouse_tested": false,
+  "game_tested": false,
+  "source_sha256": {
+    "src/recoil_lab/simple_core.py": "e22f2d6211741d9ca30511fd252177d402cfd2914d1cc9dad89f77288a36fabf",
+    "src/recoil_lab/simple_app.py": "83dc29d461051376729bcd54c32bdc5219b55ec2144148db73e4d07af971d5e4",
+    "src/recoil_lab/simple_tuning.py": "47d173c843d279c812f73c8f40610254c3c6987a5204f6dbc3ab87f579d0ccf5",
+    "tests/test_simple_tuning.py": "2eca03ffdf2da75e2e56aadeb76b15c31e14c9dca52e30386cd2fadfac09d6a7",
+    "tools/build_simple.py": "3289080295793f8afb60512445f0586f82d3044894bdb23eef3bcd53db87184b",
+    ".github/workflows/simple.yml": "b9123f23ef4272139a1f8a01b85cd01a7925bcd79b7cee008175894e582b92d4",
+    "docs/SIMPLE_MODE.md": "72e73f37d486d8fd916119a273dcb1bf900ca0a321113705fa759fa76c06acca",
+    "src/recoil_lab/simple_desktop.py": "f23373ee2306c20227c457b5ac57696cac6759b5d9a68e78426f2889fe5209d1"
+  },
+  "rejected_windows_run": {
+    "run_id": 35864841268,
+    "head": "71128af7f535e0f2b56b2f07554608c4afb090b3",
+    "reason": "pytest parameter expanded past the 32767 character Windows environment limit",
+    "fix": "short explicit ids with unchanged oversized test input and assertions; added suite node-id length check",
+    "test_coverage_reduced": false
+  }
+}

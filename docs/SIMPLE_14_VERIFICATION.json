@@ -1,0 +1,30 @@
+{
+  "base_commit": "a552fe662435a559bbe8a23865d6b413bf9b3a06",
+  "version": "1.4.0-rc1",
+  "tests": "628 passed in 12.22s",
+  "native_status": "PASS",
+  "native_checks": 58,
+  "game_tested": false,
+  "physical_input_tested": false,
+  "windows_verification": "pending new HEAD",
+  "sha256": {
+    ".github/workflows/simple.yml": "824b6dcc314e68862b8fcdf6bcc6caed9739838232337e2b2e4c6501d32d1c8d",
+    "docs/CURRENT.md": "5ba554107b1a1daeb9bb36109360ccf200796c5509658c737a936b8d0d7ec186",
+    "docs/SIMPLE_14_PLAN.md": "440b83a3b08a193bfb63de3ca0b0d658dde37b5200e8b7ce24b212baa6ddc0a9",
+    "docs/SIMPLE_MODE.md": "f4569cc1653fc28192c686ce50a880387cb19516792199f3ad54cc6fea8725ef",
+    "src/recoil_lab/simple_app.py": "d1b2980075335b8d78abe0c2bb154b2ee51bad732604f64f04366d54c8d48eba",
+    "src/recoil_lab/simple_core.py": "1f243ca0e5170203438323d221006e3038cdb299396595103d63983e6db64057",
+    "src/recoil_lab/simple_daily_selftest.py": "b99bf6aa7b2b310ce023bba99df07b57d5a77a4acc6734431c39064c40b9da5e",
+    "src/recoil_lab/simple_daily_ui.py": "e972a4ed2500955fd7c989d7147056dd0491925a01bd71cf642300fad4354aac",
+    "src/recoil_lab/simple_desktop.py": "f23373ee2306c20227c457b5ac57696cac6759b5d9a68e78426f2889fe5209d1",
+    "src/recoil_lab/simple_guide.py": "d0cae7fc8feb4a9b889208117710adb4a7e23b4c3ddefc95dd71f79b552b61da",
+    "src/recoil_lab/simple_guide_ui.py": "da09465d3980566ae8ab0eef5d4d6711938835caf4479ee1332450fcea740538",
+    "src/recoil_lab/simple_quick.py": "793adfd36f5c8e8761b5897611f32b70a42ceb7f157bdaafae24f67b3142ecdf",
+    "src/recoil_lab/simple_quick_ui.py": "2216e72b7eead52c950633be83df039ec9fc8ce1dde09ca8e589006f8c62deef",
+    "src/recoil_lab/simple_toggle.py": "a9af7e42b3b58e2d96561e99f3867ecdf89fc881762db2232407090d90ea050f",
+    "src/recoil_lab/simple_toggle_desktop.py": "c8ef875e4777c90d55dd2b8d6227780208bf15c00d91fb30b237ef71fe00ba50",
+    "src/recoil_lab/simple_tuning.py": "47d173c843d279c812f73c8f40610254c3c6987a5204f6dbc3ab87f579d0ccf5",
+    "tests/test_simple_toggle.py": "37e7ef748f1bd05d975068d6b30281a7424206ee3ab00d85903b8ee156b7a064",
+    "tools/build_simple.py": "a963a13febad96133d40930086b72055384285fad7440853e59544355be10b6d"
+  }
+}

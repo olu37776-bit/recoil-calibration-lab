@@ -1,0 +1,32 @@
+{
+  "version": "1.5.1-rc1",
+  "baseline_commit": "8d1ac3195133cd28b27e22018bbf33933855bcc7",
+  "scope": "window-title hotfix only; main V0.8 unchanged",
+  "reproduction": {
+    "old_default_Wardogs": "not found",
+    "old_manual_Wardogs_trailing_space": "rejected",
+    "user_actual_invisible_characters": "not captured"
+  },
+  "local_verification": {
+    "platform": "Linux",
+    "regression_passed": 678,
+    "regression_failures": 0,
+    "regression_errors": 0,
+    "native_status": "PASS",
+    "native_checks": 78,
+    "entrypoint": "PanelApplication"
+  },
+  "windows_verification": "REQUIRED on the new commit; use its Actions artifacts, not these local results",
+  "frozen_windows_gate": "requires actual Win32 padded-title enumeration and real combobox/persistence checks",
+  "physical_input_tested": false,
+  "game_tested": false,
+  "independent_review": "not performed",
+  "changed_file_sha256": {
+    "src/recoil_lab/simple_panel_model.py": "8fd0b31813b3618c996a7f39bafd8a713a15a6b756ab3b5d4ad3d49cf4f9efd7",
+    "src/recoil_lab/simple_core.py": "23614564c96d0e08617eca13d9e7fa2174aa4e26ddaa4012c3193840d32e4b7b",
+    "tests/test_simple_panel.py": "0e91e96fec9687c7f35678b4c16a4649795eebdc6e54d6315276616e456d7b7f",
+    "src/recoil_lab/simple_panel_selftest.py": "3ad68c81feaf52fa47f396d5c84285a69453da81cbcdd9a26c9cd4ddf4a9d787",
+    "tools/build_simple.py": "a3ce2d9356af156edba318dc36cba0faa17f954fbc07a50aecfb6f510259d1dd",
+    "docs/CURRENT.md": "2e8b39b139e5860f8b7f8d8c539f0e16ccb6e8681c41da84d38ecb9ff44288fa"
+  }
+}
