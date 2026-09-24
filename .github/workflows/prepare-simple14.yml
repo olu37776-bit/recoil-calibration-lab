@@ -1,0 +1,51 @@
+name: Prepare exact Simple14 toggle source
+on:
+  push:
+    branches: ['build/simple14-*']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate exact source and create content objects only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import pathlib,base64,zlib,hashlib,subprocess,json,os,urllib.request
+          root=pathlib.Path.cwd()
+          encoded=''.join((root/'tools/simple14-transfer'/f'{i:02}').read_text() for i in range(15))
+          patch=zlib.decompress(base64.b64decode(encoded,validate=True))
+          assert hashlib.sha256(patch).hexdigest()=='1e8da49bef06e234fb1cfd63acc007a8d7bdf9c40492156551c6074a5dc290fc'
+          patchfile=root/'transfer.patch';patchfile.write_bytes(patch)
+          work=pathlib.Path('/tmp/simple14-checked')
+          subprocess.run(['git','worktree','add','--detach',str(work),'a552fe662435a559bbe8a23865d6b413bf9b3a06'],check=True)
+          def git(*args):return subprocess.check_output(['git',*args],cwd=work,text=True).strip()
+          assert git('rev-parse','HEAD^{tree}')=='c9260a3c1ab1f5521166722c049c0fa88a1d77f0'
+          subprocess.run(['git','apply','--check',str(patchfile)],cwd=work,check=True)
+          subprocess.run(['git','apply',str(patchfile)],cwd=work,check=True)
+          git('add','src','tests','tools','.github','docs')
+          assert git('write-tree')=='9d1f3c27e73eeefad5a0ab8f46af37378c509d2f'
+          names=git('diff','--cached','--name-only').splitlines()
+          assert len(names)==15
+          entries=[]
+          for name in names:
+              raw=(work/name).read_bytes()
+              sha=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              request=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs',data=json.dumps({'content':base64.b64encode(raw).decode(),'encoding':'base64'}).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'},method='POST')
+              with urllib.request.urlopen(request,timeout=30) as response: actual=json.load(response)['sha']
+              assert actual==sha
+              entries.append({'path':name,'mode':'100644','type':'blob','sha':sha})
+          (root/'source-objects.json').write_text(json.dumps({'tree':'9d1f3c27e73eeefad5a0ab8f46af37378c509d2f','entries':entries},indent=2))
+          print(json.dumps(entries))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Simple14-Source-Objects
+          path: source-objects.json
+          if-no-files-found: error
