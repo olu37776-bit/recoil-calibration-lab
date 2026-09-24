@@ -1,0 +1,23 @@
+name: Prepare exact two-page Simple15 source
+on:
+  push:
+    branches: ['build/simple15-*']
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate and create source objects only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/prepare_simple15.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Simple15-Source-Objects
+          path: runs/source-objects.json
+          if-no-files-found: error
