@@ -18,7 +18,7 @@ class QuickControls:
         self.window = None
         self.caption = tk.StringVar()
         self.hint = tk.StringVar(value='快捷调节关闭；开启后，仅在本次前台试用中生效')
-        host = ttk.Frame(app.scale.master)
+        host = ttk.Frame(getattr(app, 'quick_host', app.scale.master))
         host.pack(fill='x', pady=(8, 2))
         ttk.Checkbutton(host, text='松手后用 F5 / F6 调节（可选）',
                         variable=self.enabled, command=self.options_changed).pack(side='left')
@@ -97,8 +97,8 @@ class QuickControls:
         ttk.Label(outer, textvariable=self.caption, wraplength=400).pack(anchor='w', pady=(0, 5))
         ttk.Label(outer, text='当前下拉力度', foreground='#536173').pack(anchor='w')
         ttk.Label(outer, textvariable=self.app.amount, font=('', 25, 'bold')).pack(anchor='w')
-        ttk.Label(outer, textvariable=self.app.status, wraplength=400).pack(anchor='w', pady=6)
-        ttk.Label(outer, text='松开 F7 和左右键 → F5 减 / F6 加\n这是普通置顶窗口；独占全屏可能看不到。',
+        ttk.Label(outer, textvariable=self.app.guide.live_title, wraplength=400).pack(anchor='w', pady=6)
+        ttk.Label(outer, textvariable=self.hint, wraplength=400,
                   foreground='#536173').pack(anchor='w')
         ttk.Button(outer, text='立即停止  F8 / Esc', command=self.app.stop).pack(anchor='e', pady=6)
         win.protocol('WM_DELETE_WINDOW', self.close_status)
