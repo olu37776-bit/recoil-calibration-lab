@@ -1,0 +1,76 @@
+name: Prepare checked Simple13 guide source
+on:
+  push:
+    branches: ['build/simple13-c9260a3']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify exact edits and create source blobs only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64, gzip, hashlib, io, json, os, pathlib, subprocess, urllib.request
+          base = 'd173e770f09ac16e1bc3521b7deb41777fde1ee5'
+          assert subprocess.check_output(['git','rev-parse','HEAD^'],text=True).strip() == base
+          payload = ''.join(pathlib.Path(f'tools/simple13.{i}.b64').read_text('ascii') for i in range(3))
+          assert hashlib.sha256(payload.encode()).hexdigest() == 'f22803f3d3e7a1c53a823b1b5b5b0d6fc29733d058cbf4f90e21d6c0b67726d9'
+          with gzip.GzipFile(fileobj=io.BytesIO(base64.b64decode(payload,validate=True))) as f:
+              raw = f.read(400001)
+          assert len(raw) <= 400000
+          spec = json.loads(raw)
+          allowed = {'.github/workflows/simple.yml','docs/SIMPLE_13_PLAN.md','docs/SIMPLE_MODE.md','src/recoil_lab/simple_app.py','src/recoil_lab/simple_core.py','src/recoil_lab/simple_guide.py','src/recoil_lab/simple_guide_ui.py','src/recoil_lab/simple_quick_ui.py','tests/test_simple_guide.py','tools/build_simple.py','docs/SIMPLE_13_VERIFICATION.json'}
+          assert spec['base'] == base and len(spec['files']) == len(allowed)
+          assert spec['expected_tree'] == 'c9260a3c1ab1f5521166722c049c0fa88a1d77f0'
+          planned = []
+          seen = set()
+          for entry in spec['files']:
+              name = entry['path']
+              assert name in allowed and name not in seen
+              seen.add(name)
+              path = pathlib.Path(name)
+              old = path.read_bytes() if path.exists() else b''
+              if entry['old'] is None:
+                  assert not path.exists(), name
+              else:
+                  assert hashlib.sha256(old).hexdigest() == entry['old'], name
+              text = old.decode('utf-8')
+              end = 0
+              for a,b,value in entry['edits']:
+                  assert type(a) is int and type(b) is int and isinstance(value,str)
+                  assert end <= a <= b <= len(text)
+                  end = b
+              for a,b,value in reversed(entry['edits']):
+                  text = text[:a]+value+text[b:]
+              new = text.encode('utf-8')
+              assert hashlib.sha256(new).hexdigest() == entry['new'], name
+              planned.append((name,new))
+          repo = os.environ['GITHUB_REPOSITORY']
+          assert repo == 'olu37776-bit/recoil-calibration-lab'
+          elements = []
+          for name,data in planned:
+              body = json.dumps({'encoding':'base64','content':base64.b64encode(data).decode('ascii')}).encode()
+              req = urllib.request.Request(f'https://api.github.com/repos/{repo}/git/blobs',data=body,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(req,timeout=30) as response:
+                  result = json.load(response)
+              expected = hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              assert result['sha'] == expected, name
+              elements.append({'path':name,'mode':'100644','type':'blob','sha':expected})
+          report = {'base':base,'expected_tree':spec['expected_tree'],'tree_elements':elements,'refs_updated':False}
+          pathlib.Path('runs').mkdir(exist_ok=True)
+          pathlib.Path('runs/guide-source-objects.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Simple13-Source-Objects
+          path: runs/guide-source-objects.json
+          if-no-files-found: error
